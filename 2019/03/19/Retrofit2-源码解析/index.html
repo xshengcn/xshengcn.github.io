@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Retrofit2 源码解析 | X档案</title>
+  <meta name="description" content="Retrofit2 源码解析Retrofit是适用于Android和Java的类型安全的Http客户端，网络请求的工作本质是在OkHttp上完成，而Retrofit仅负责网络请求接口的封装。 本文代码基于Retrofit-2.8.0 1. 基本使用 定义Http API接口信息 1234interface GitHubService &amp;#123;    @GET(&quot;users&#x2F;&amp;#123">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Retrofit2 源码解析">
+<meta property="og:url" content="https://blog.xusheng.online/2019/03/19/Retrofit2-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="Retrofit2 源码解析Retrofit是适用于Android和Java的类型安全的Http客户端，网络请求的工作本质是在OkHttp上完成，而Retrofit仅负责网络请求接口的封装。 本文代码基于Retrofit-2.8.0 1. 基本使用 定义Http API接口信息 1234interface GitHubService &amp;#123;    @GET(&quot;users&#x2F;&amp;#123">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-03-19T11:12:52.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.730Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="源码解析">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2019/03/19/Retrofit2-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Retrofit2-源码解析" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Retrofit2 源码解析
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2019/03/19/Retrofit2-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="article-date">
+	  <time datetime="2019-03-19T11:12:52.000Z" itemprop="datePublished">2019-03-19</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Android/">Android</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" rel="tag">源码解析</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2019/03/19/Retrofit2-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="Retrofit2-源码解析"><a href="#Retrofit2-源码解析" class="headerlink" title="Retrofit2 源码解析"></a>Retrofit2 源码解析</h2><p>Retrofit是适用于Android和Java的类型安全的Http客户端，网络请求的工作本质是在OkHttp上完成，而Retrofit仅负责网络请求接口的封装。</p>
+<p>本文代码基于<a target="_blank" rel="noopener" href="https://github.com/square/retrofit/releases/tag/parent-2.8.0">Retrofit-2.8.0</a></p>
+<h3 id="1-基本使用"><a href="#1-基本使用" class="headerlink" title="1. 基本使用"></a>1. 基本使用</h3><ol>
+<li><p>定义Http API接口信息</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">GitHubService</span> </span>&#123;</span><br><span class="line">    <span class="meta">@GET(<span class="meta-string">&quot;users/&#123;user&#125;/repos&quot;</span>)</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">listRepos</span><span class="params">(<span class="meta">@Path(<span class="meta-string">&quot;user&quot;</span>)</span> user: <span class="type">String</span>?)</span></span>: Call&lt;ResponseBody&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>利用Retrofit生成<code>GithubService</code>的实现</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> retrofit: Retrofit = Retrofit.Builder()</span><br><span class="line">    .baseUrl(<span class="string">&quot;https://api.github.com/&quot;</span>)</span><br><span class="line">    .build()</span><br><span class="line"><span class="keyword">val</span> service: GitHubService = retrofit.create(GitHubService::<span class="keyword">class</span>.java)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>通过<code>GithubService</code>的实现获取请求返回结果</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> call = service.listRepos(<span class="string">&quot;xshengcn&quot;</span>)</span><br><span class="line"><span class="comment">// val response  = call.execute() // 同步执行</span></span><br><span class="line"><span class="keyword">val</span> callback:Callback&lt;ResponseBody&gt;  = <span class="keyword">object</span> : Callback&lt;ResponseBody&gt; &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onResponse</span><span class="params">(call: <span class="type">Call</span>&lt;<span class="type">ResponseBody</span>&gt;, response: <span class="type">Response</span>&lt;<span class="type">ResponseBody</span>&gt;)</span></span> &#123;</span><br><span class="line">        Log.d(<span class="string">&quot;Callback&quot;</span>, <span class="string">&quot;onResponse: <span class="variable">$call</span>, <span class="variable">$response</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onFailure</span><span class="params">(call: <span class="type">Call</span>&lt;<span class="type">ResponseBody</span>&gt;, t: <span class="type">Throwable</span>)</span></span> &#123;</span><br><span class="line">   </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">call.enqueue(callback)</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="2-源码分析"><a href="#2-源码分析" class="headerlink" title="2. 源码分析"></a>2. 源码分析</h3><h4 id="2-1-Retrofit-build"><a href="#2-1-Retrofit-build" class="headerlink" title="2.1 Retrofit.build()"></a>2.1 Retrofit.build()</h4><p>我们先看看<code>Retrofit.Builder</code>在创建<code>Retrofit</code>时干了些什么。这里直接查看它的build方法。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">  <span class="keyword">public</span> Retrofit build() &#123;</span><br><span class="line">    <span class="keyword">if</span> (baseUrl == <span class="literal">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 如果不传入base url就抛出异常</span></span><br><span class="line">      <span class="keyword">throw</span> new IllegalStateException(<span class="string">&quot;Base URL required.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果没有传入自定义的OkHttpClient就创建一个新的</span></span><br><span class="line">    <span class="comment">// OkHttpClient实现了okhttp3.Call.Factory接口</span></span><br><span class="line">    okhttp3.Call.Factory callFactory = <span class="keyword">this</span>.callFactory;</span><br><span class="line">    <span class="keyword">if</span> (callFactory == <span class="literal">null</span>) &#123;</span><br><span class="line">      callFactory = new OkHttpClient();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 没有设置过callbackExecutor，且此处platform为Android</span></span><br><span class="line">        <span class="comment">// 因此这里被赋值为了MainThreadExecutor</span></span><br><span class="line">    Executor callbackExecutor = <span class="keyword">this</span>.callbackExecutor;</span><br><span class="line">    <span class="keyword">if</span> (callbackExecutor == <span class="literal">null</span>) &#123;</span><br><span class="line">      callbackExecutor = platform.defaultCallbackExecutor();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将设置的CallAdapter.Factory添加到集合中</span></span><br><span class="line">    <span class="comment">// 并添加根据不同平台添加默认的CallAdapter.Factory</span></span><br><span class="line">    <span class="comment">// Make a defensive copy of the adapters and add the default Call adapter.</span></span><br><span class="line">    List&lt;CallAdapter.Factory&gt; callAdapterFactories = new ArrayList&lt;&gt;(<span class="keyword">this</span>.callAdapterFactories);</span><br><span class="line">    callAdapterFactories.addAll(platform.defaultCallAdapterFactories(callbackExecutor));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 将设置的Converter.Factory添加到集合中</span></span><br><span class="line">    <span class="comment">// Make a defensive copy of the converters.</span></span><br><span class="line">    List&lt;Converter.Factory&gt; converterFactories =</span><br><span class="line">        new ArrayList&lt;&gt;(</span><br><span class="line">            <span class="number">1</span> + <span class="keyword">this</span>.converterFactories.size() + platform.defaultConverterFactoriesSize());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Add the built-in converter factory first. This prevents overriding its behavior but also</span></span><br><span class="line">    <span class="comment">// ensures correct behavior when using converters that consume all types.</span></span><br><span class="line">    <span class="comment">// 添加了一个内置的BuiltInConverters</span></span><br><span class="line">    converterFactories.add(new BuiltInConverters());</span><br><span class="line">    converterFactories.addAll(<span class="keyword">this</span>.converterFactories);</span><br><span class="line">    <span class="comment">// 并添加根据不同平台添加默认的Converter.Factory</span></span><br><span class="line">    converterFactories.addAll(platform.defaultConverterFactories());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> new Retrofit(</span><br><span class="line">        callFactory,</span><br><span class="line">        baseUrl,</span><br><span class="line">        unmodifiableList(converterFactories),</span><br><span class="line">        unmodifiableList(callAdapterFactories),</span><br><span class="line">        callbackExecutor,</span><br><span class="line">        validateEagerly);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Retrofit</code>对象已经创建了，其构造器实现都是赋值语句。我们先简单介绍一下几个关键类吧：</p>
+<ul>
+<li><p><code>CallAdapter.Factory</code>：用于创建<code>CallAdapter</code>实例的工厂。</p>
+</li>
+<li><p><code>CallAdapter</code>：将一个Call从响应类型R适配成T类型的适配器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">CallAdapter</span>&lt;<span class="title">R</span>, <span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">  <span class="comment">// 将HTTP响应体转换为Java对象时，该对象的类型</span></span><br><span class="line">  <span class="function">Type <span class="title">responseType</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="comment">// 返回一个代理了call的T</span></span><br><span class="line">  <span class="function">T <span class="title">adapt</span><span class="params">(Call&lt;R&gt; call)</span></span>;</span><br><span class="line">    </span><br><span class="line">     ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>Converter.Factory</code>：基于一个类型和目标类型创建一个<code>Converter</code>实例的工厂。</p>
+</li>
+<li><p><code>Converter</code> ：将F类型的值转换为T类型。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public interface Converter&lt;F, T&gt; &#123;</span><br><span class="line">  @Nullable</span><br><span class="line">  T convert(F value) throws IOException;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<h4 id="2-2-Retrofit-create"><a href="#2-2-Retrofit-create" class="headerlink" title="2.2 Retrofit.create"></a>2.2 Retrofit.create</h4><p>   通过上面的使用步骤，可以看到是Retrofit通过create方法创建了一个具体的实例。直接查看create的源码：</p>
+   <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">create</span><span class="params">(<span class="keyword">final</span> Class&lt;T&gt; service)</span> </span>&#123;</span><br><span class="line"><span class="comment">// 验证service接口信息</span></span><br><span class="line">validateServiceInterface(service); </span><br><span class="line"><span class="comment">// 通过动态代理返回service实例</span></span><br><span class="line"><span class="keyword">return</span> (T)</span><br><span class="line">    Proxy.newProxyInstance(</span><br><span class="line">        service.getClassLoader(),</span><br><span class="line">        <span class="keyword">new</span> Class&lt;?&gt;[] &#123;service&#125;,</span><br><span class="line">        <span class="keyword">new</span> InvocationHandler() &#123;</span><br><span class="line">          <span class="keyword">private</span> <span class="keyword">final</span> Platform platform = Platform.get();</span><br><span class="line">          <span class="keyword">private</span> <span class="keyword">final</span> Object[] emptyArgs = <span class="keyword">new</span> Object[<span class="number">0</span>];</span><br><span class="line">   </span><br><span class="line">          <span class="meta">@Override</span></span><br><span class="line">          <span class="keyword">public</span> <span class="meta">@Nullable</span> <span class="function">Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, <span class="meta">@Nullable</span> Object[] args)</span></span></span><br><span class="line"><span class="function">              <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">            <span class="comment">// 如果是调用的Object中的方法，那就直接执行此方法</span></span><br><span class="line">            <span class="keyword">if</span> (method.getDeclaringClass() == Object.class) &#123;</span><br><span class="line">              <span class="keyword">return</span> method.invoke(<span class="keyword">this</span>, args);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 通过Platform.get()获取平台信息，这里是Android</span></span><br><span class="line">            <span class="keyword">if</span> (platform.isDefaultMethod(method)) &#123;</span><br><span class="line">              <span class="keyword">return</span> platform.invokeDefaultMethod(method, service, proxy, args);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 加载service method</span></span><br><span class="line">            <span class="keyword">return</span> loadServiceMethod(method).invoke(args != <span class="keyword">null</span> ? args : emptyArgs);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>   <code>InvocationHandler</code>接口是proxy代理实例的调用处理程序实现的一个接口，每一个proxy代理实例都有一个关联的调用处理程序；在代理实例调用方法时，方法调用被编码分派到调用处理程序的invoke方法。</p>
+<p>   在InvocationHandler中，这里面最重要的就是<code>loadServiceMethod(method).invoke()</code>，通过Method信息获取的ServiceMethod后并调用invoke。</p>
+<p><strong>loadServiceMethod</strong></p>
+<p>那我们先看看``loadServiceMethod(method)`到底干了哪些事情：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">ServiceMethod&lt;?&gt; loadServiceMethod(Method method) &#123;</span><br><span class="line">  <span class="comment">// 如果serviceMethodCache中缓存了ServiceMethod直接返回</span></span><br><span class="line">  ServiceMethod&lt;?&gt; result = serviceMethodCache.get(method);</span><br><span class="line">  <span class="keyword">if</span> (result != <span class="keyword">null</span>) <span class="keyword">return</span> result;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">synchronized</span> (serviceMethodCache) &#123;</span><br><span class="line">    result = serviceMethodCache.get(method);</span><br><span class="line">    <span class="keyword">if</span> (result == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// 将service中的method解析为ServiceMethod</span></span><br><span class="line">      result = ServiceMethod.parseAnnotations(<span class="keyword">this</span>, method);</span><br><span class="line">      serviceMethodCache.put(method, result); <span class="comment">// 加入缓存</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以明显的看出这里采取了缓存的设计，所以Retrofit使用单例时才能发挥最大的作用。</p>
+<p>这段代码的重点就是<code>ServiceMethod.parseAnnotations(this, method)</code>。那么就继续进入到<code>ServiceMethod</code>。</p>
+<p><strong>ServiceMethod</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">ServiceMethod</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 将Service接口中的方法转化为ServiceMethod</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="keyword">static</span> &lt;T&gt; <span class="function">ServiceMethod&lt;T&gt; <span class="title">parseAnnotations</span><span class="params">(Retrofit retrofit, Method method)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 解析方法信息对应的请求信息</span></span><br><span class="line">    RequestFactory requestFactory = RequestFactory.parseAnnotations(retrofit, method);</span><br><span class="line">        </span><br><span class="line">       <span class="comment">// 获取方法的返回值类型</span></span><br><span class="line">    Type returnType = method.getGenericReturnType();</span><br><span class="line">    <span class="comment">// 验证返回类型</span></span><br><span class="line">    <span class="keyword">if</span> (Utils.hasUnresolvableType(returnType)) &#123;</span><br><span class="line">      <span class="comment">// 方法返回类型不得包含类型变量或通配符</span></span><br><span class="line">      <span class="keyword">throw</span> methodError(</span><br><span class="line">          method,</span><br><span class="line">          <span class="string">&quot;Method return type must not include a type variable or wildcard: %s&quot;</span>,</span><br><span class="line">          returnType);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 方法返回类型不能是void</span></span><br><span class="line">    <span class="keyword">if</span> (returnType == <span class="keyword">void</span>.class) &#123;</span><br><span class="line">      <span class="keyword">throw</span> methodError(method, <span class="string">&quot;Service methods cannot return void.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">        <span class="comment">// 使用HttpServiceMethod解析</span></span><br><span class="line">    <span class="keyword">return</span> HttpServiceMethod.parseAnnotations(retrofit, method, requestFactory);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">abstract</span> <span class="meta">@Nullable</span> <span class="function">T <span class="title">invoke</span><span class="params">(Object[] args)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>ServiceMethod</code>是一个抽象类，<code>loadServiceMethod(method).invoke()</code>调用的就是它的抽象方法<code>invoke()</code>。</p>
+</li>
+<li><p>它在解析方法的时候先取出要调用方法的注解、参数以及参数注解等，生成对于的http请求信息。这里的方法太长，就贴了几个重要的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">RequestFactory</span> </span>&#123;</span><br><span class="line"><span class="function"><span class="keyword">static</span> RequestFactory <span class="title">parseAnnotations</span><span class="params">(Retrofit retrofit, Method method)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> Builder(retrofit, method).build();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Builder(Retrofit retrofit, Method method) &#123;</span><br><span class="line">    <span class="keyword">this</span>.retrofit = retrofit;</span><br><span class="line">    <span class="keyword">this</span>.method = method;</span><br><span class="line">    <span class="keyword">this</span>.methodAnnotations = method.getAnnotations(); <span class="comment">// 获取方法的注解</span></span><br><span class="line">    <span class="keyword">this</span>.parameterTypes = method.getGenericParameterTypes(); <span class="comment">// 获取方法的参数类型</span></span><br><span class="line">    <span class="keyword">this</span>.parameterAnnotationsArray = method.getParameterAnnotations(); <span class="comment">// 获取方法的参数注解</span></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function">RequestFactory <span class="title">build</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (Annotation annotation : methodAnnotations) &#123;</span><br><span class="line">      parseMethodAnnotation(annotation); <span class="comment">// 解析方法注解, 并判断注解的合法性(例如header是否为空等)</span></span><br><span class="line">    &#125;</span><br><span class="line">    ...一些判断</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> RequestFactory(<span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 解析注解， 并为httpMethod(GET, POST等), hasBody等赋值</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseMethodAnnotation</span><span class="params">(Annotation annotation)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line">&#125;  </span><br></pre></td></tr></table></figure>
+</li>
+<li><p><code>ServiceMethod</code>解析了部分信息后继续交由<code>HttpServiceMethod</code>来解析，并返回了<code>HttpServiceMethod&lt;ResponseT, ReturnT&gt;</code>。</p>
+</li>
+</ul>
+<p><strong>HttpServiceMethod</strong></p>
+<p><code>HttpServiceMethod</code>是<code>ServiceMethod</code>的子类，我们先来看看它的<code>parseAnnotations</code>是如何工作的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 检查接口方法上的注释，以构造使用HTTP的可重用服务方法。 这需要潜在的昂贵反射，因此最好只构建一次每个服务方法并重用它。</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">static</span> &lt;ResponseT, ReturnT&gt; <span class="function">HttpServiceMethod&lt;ResponseT, ReturnT&gt; <span class="title">parseAnnotations</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    Retrofit retrofit, Method method, RequestFactory requestFactory)</span> </span>&#123;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  Annotation[] annotations = method.getAnnotations(); <span class="comment">// 获取方法的注解</span></span><br><span class="line">  Type adapterType; <span class="comment">// 返回值类型 如Call&lt;Data&gt;或者Observable&lt;Data&gt;</span></span><br><span class="line"> ...</span><br><span class="line">    adapterType = method.getGenericReturnType();</span><br><span class="line"> ...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 从传入大CallAdapter.Factory中查找匹配的CallAdapter，如RxJava2CallAdapter</span></span><br><span class="line">  CallAdapter&lt;ResponseT, ReturnT&gt; callAdapter =</span><br><span class="line">      createCallAdapter(retrofit, method, adapterType, annotations);</span><br><span class="line">  <span class="comment">// CallAdapter返回的类型 ，如Data</span></span><br><span class="line">  Type responseType = callAdapter.responseType();</span><br><span class="line">  <span class="comment">// 不是有效的返回类型</span></span><br><span class="line">  <span class="keyword">if</span> (responseType == okhttp3.Response.class) &#123;</span><br><span class="line">    <span class="keyword">throw</span> methodError(</span><br><span class="line">        method,</span><br><span class="line">        <span class="string">&quot;&#x27;&quot;</span></span><br><span class="line">            + getRawType(responseType).getName()</span><br><span class="line">            + <span class="string">&quot;&#x27; is not a valid response body type. Did you mean ResponseBody?&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 返回类型必须包含通用类型（例如Response &lt;String&gt;）</span></span><br><span class="line">  <span class="keyword">if</span> (responseType == Response.class) &#123;</span><br><span class="line">    <span class="keyword">throw</span> methodError(method, <span class="string">&quot;Response must include generic type (e.g., Response&lt;String&gt;)&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  ...</span><br><span class="line">  <span class="comment">// 从Converter.Factory中查找匹配的Converter，GsonResponseBodyConverter</span></span><br><span class="line">  Converter&lt;ResponseBody, ResponseT&gt; responseConverter =</span><br><span class="line">      createResponseConverter(retrofit, method, responseType);</span><br><span class="line"></span><br><span class="line">  okhttp3.Call.Factory callFactory = retrofit.callFactory;</span><br><span class="line">  ...</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CallAdapted&lt;&gt;(requestFactory, callFactory, responseConverter, callAdapter);</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们过滤掉处理协程的相关部分，发现这里做了这几部分工作：</p>
+<ol>
+<li>根据方法的返回值类型等信息从<code>Retrofit.Builder</code>中的<code>callAdapterFactories</code>获取<code>CallAdapter</code>。</li>
+<li>获取到<code>CallAdapter</code>后根据它的<code>responseType()</code>得到的类型获取到对应的<code>Converter</code></li>
+<li>用<code>Converter</code>和<code> callAdapter</code>等创建<code>CallAdapted</code></li>
+</ol>
+<p><strong>CallAdapted</strong></p>
+<p><code>loadServiceMethod(method)</code>获取到ServiceMethod实例就是<code>CallAdapted</code>了，所以invoke调用的就是<code>CallAdapted.invoke()</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpServiceMethod</span>&lt;<span class="title">ResponseT</span>, <span class="title">ReturnT</span>&gt; <span class="keyword">extends</span> <span class="title">ServiceMethod</span>&lt;<span class="title">ReturnT</span>&gt; </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">final</span> <span class="meta">@Nullable</span> <span class="function">ReturnT <span class="title">invoke</span><span class="params">(Object[] args)</span> </span>&#123;</span><br><span class="line">    Call&lt;ResponseT&gt; call = <span class="keyword">new</span> OkHttpCall&lt;&gt;(requestFactory, args, callFactory, responseConverter);</span><br><span class="line">    <span class="keyword">return</span> adapt(call, args);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="meta">@Nullable</span> <span class="function">ReturnT <span class="title">adapt</span><span class="params">(Call&lt;ResponseT&gt; call, Object[] args)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">CallAdapted</span>&lt;<span class="title">ResponseT</span>, <span class="title">ReturnT</span>&gt; <span class="keyword">extends</span> <span class="title">HttpServiceMethod</span>&lt;<span class="title">ResponseT</span>, <span class="title">ReturnT</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CallAdapter&lt;ResponseT, ReturnT&gt; callAdapter;</span><br><span class="line"></span><br><span class="line">    CallAdapted(</span><br><span class="line">        RequestFactory requestFactory,</span><br><span class="line">        okhttp3.Call.Factory callFactory,</span><br><span class="line">        Converter&lt;ResponseBody, ResponseT&gt; responseConverter,</span><br><span class="line">        CallAdapter&lt;ResponseT, ReturnT&gt; callAdapter) &#123;</span><br><span class="line">      <span class="keyword">super</span>(requestFactory, callFactory, responseConverter);</span><br><span class="line">      <span class="keyword">this</span>.callAdapter = callAdapter;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> ReturnT <span class="title">adapt</span><span class="params">(Call&lt;ResponseT&gt; call, Object[] args)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> callAdapter.adapt(call);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>因为它继承于HttpServiceMethod，而且并没有重写invoke方法。所以这里就是创建好一个<code>OkHttpCall</code>后并通过<code>callAdapter.adapt()</code>返回一个对象。</p>
+<p>这里的CallAdapter是什么呢？我们在<code>Retrofit.build()</code>时添加了一个默认的<code>CallAdapter.Factory</code>，它就是<code>DefaultCallAdapterFactory</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">callAdapterFactories.addAll(platform.defaultCallAdapterFactories(callbackExecutor));</span><br></pre></td></tr></table></figure>
+
+<p>我们进入到<code>DefaultCallAdapterFactory</code>查看它通过<code>get()</code>获取的是什么CallAdapter，并且通过<code>callAdapter.adapt(call)</code>返回是什么对象。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">DefaultCallAdapterFactory</span> <span class="keyword">extends</span> <span class="title">CallAdapter</span>.<span class="title">Factory</span> </span>&#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">final</span> <span class="meta">@Nullable</span> Executor callbackExecutor;</span><br><span class="line"></span><br><span class="line">  DefaultCallAdapterFactory(<span class="meta">@Nullable</span> Executor callbackExecutor) &#123;</span><br><span class="line">    <span class="keyword">this</span>.callbackExecutor = callbackExecutor;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="keyword">public</span> <span class="meta">@Nullable</span> CallAdapter&lt;?, ?&gt; get(</span><br><span class="line">      Type returnType, Annotation[] annotations, Retrofit retrofit) &#123;</span><br><span class="line">    <span class="keyword">if</span> (getRawType(returnType) != Call.class) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 返回类型必须通过Call包装，如Call&lt;Foo&gt;</span></span><br><span class="line">    <span class="keyword">if</span> (!(returnType <span class="keyword">instanceof</span> ParameterizedType)) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(</span><br><span class="line">          <span class="string">&quot;Call return type must be parameterized as Call&lt;Foo&gt; or Call&lt;? extends Foo&gt;&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 获取返回类型 Foo</span></span><br><span class="line">    <span class="keyword">final</span> Type responseType = Utils.getParameterUpperBound(<span class="number">0</span>, (ParameterizedType) returnType);</span><br><span class="line">        <span class="comment">// 如果有SkipCallbackExecutor注解就是空否则是Retrofit#build时传入的</span></span><br><span class="line">    <span class="keyword">final</span> Executor executor =</span><br><span class="line">        Utils.isAnnotationPresent(annotations, SkipCallbackExecutor.class)</span><br><span class="line">            ? <span class="keyword">null</span></span><br><span class="line">            : callbackExecutor;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> CallAdapter&lt;Object, Call&lt;?&gt;&gt;() &#123;</span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> Type <span class="title">responseType</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> responseType;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="meta">@Override</span></span><br><span class="line">      <span class="function"><span class="keyword">public</span> Call&lt;Object&gt; <span class="title">adapt</span><span class="params">(Call&lt;Object&gt; call)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 因为Retrofit#build时并未添加executor，所以返回的是Call本身(OkHttpCall)</span></span><br><span class="line">        <span class="keyword">return</span> executor == <span class="keyword">null</span> ? call : <span class="keyword">new</span> ExecutorCallbackCall&lt;&gt;(executor, call);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ExecutorCallbackCall</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">Call</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">   ...</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以<code>loadServiceMethod(method).invoke(args != null ? args : emptyArgs)</code>返回的就是一个<code>OkHttpCall</code>对象。</p>
+<p><strong>Call</strong></p>
+<p>这时候Retrofit还没有进行网络请求，当执行<code>execute()</code>或者<code>enqueue()</code>才开始进行。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">OkHttpCall</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">Call</span>&lt;<span class="title">T</span>&gt; </span>&#123;</span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">enqueue</span><span class="params">(<span class="keyword">final</span> Callback&lt;T&gt; callback)</span> </span>&#123;</span><br><span class="line">    checkNotNull(callback, <span class="string">&quot;callback == null&quot;</span>);</span><br><span class="line">    okhttp3.Call call;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">      call = rawCall;</span><br><span class="line">      ...</span><br><span class="line">          call = rawCall = createRawCall();</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">    call.enqueue(<span class="keyword">new</span> okhttp3.Callback() &#123;</span><br><span class="line">      <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onResponse</span><span class="params">(okhttp3.Call call, okhttp3.Response rawResponse)</span> </span>&#123;</span><br><span class="line">        Response&lt;T&gt; response;</span><br><span class="line">        ...</span><br><span class="line">          response = parseResponse(rawResponse);</span><br><span class="line">        ...</span><br><span class="line">          callback.onResponse(OkHttpCall.<span class="keyword">this</span>, response);</span><br><span class="line">        ...</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onFailure</span><span class="params">(okhttp3.Call call, IOException e)</span> </span>&#123;</span><br><span class="line">        callFailure(e);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">callFailure</span><span class="params">(Throwable e)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">          callback.onFailure(OkHttpCall.<span class="keyword">this</span>, e);</span><br><span class="line">        ...</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="meta">@Override</span> <span class="function"><span class="keyword">public</span> Response&lt;T&gt; <span class="title">execute</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    okhttp3.Call call;</span><br><span class="line">    ...</span><br><span class="line">      call = rawCall;</span><br><span class="line">      ....</span><br><span class="line">          call = rawCall = createRawCall();</span><br><span class="line">     ...</span><br><span class="line">    <span class="keyword">return</span> parseResponse(call.execute());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> okhttp3.<span class="function">Call <span class="title">createRawCall</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    okhttp3.Call call = callFactory.newCall(requestFactory.create(args));</span><br><span class="line">    <span class="keyword">if</span> (call == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException(<span class="string">&quot;Call.Factory returned null.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> call;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="function">Response&lt;T&gt; <span class="title">parseResponse</span><span class="params">(okhttp3.Response rawResponse)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line">    ExceptionCatchingResponseBody catchingBody = <span class="keyword">new</span> ExceptionCatchingResponseBody(rawBody);</span><br><span class="line">    ...</span><br><span class="line">      T body = responseConverter.convert(catchingBody);</span><br><span class="line">      <span class="keyword">return</span> Response.success(body, rawResponse);</span><br><span class="line">    ...</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Call</code>在不管调用的是<code>enqueue</code>还是<code>execute</code>，都会创建一个<code>okhttp3.Call</code>，然后调用<code>okhttp3.Call</code>相应的方法。</p>
+<p>在<code>okhttp3.Call</code>取得结果后就通过<code>Converter.Factory</code>创建的Converter解析生成接口的返回值。</p>
+<h3 id="3-总结"><a href="#3-总结" class="headerlink" title="3. 总结"></a>3. 总结</h3><ol>
+<li>Retrofit使用了动态代理实现了我们定义的接口。</li>
+<li>在实现接口方法时，Retrofit会通过<code>loadServiceMethod</code>为每一个接口方法构建了一个<code>ServiceMethod</code>对象，并会缓存到ConcurrentHashMap中。</li>
+<li>在<code>ServiceMethod</code>构建时，会根据接口方法的注解类型、参数类型以及参数注解来拼接请求参数、确定请求类型、构建请求体等来确定使用哪个<code>CallAdapter</code>和<code>Converter</code>，并返回<code>CallAdapted</code>对象</li>
+<li><code>ServiceMethod.invoke()</code>调用了<code>CallAdapter.adapt</code>，这里生成了<code>OkHttpCall</code>。当<code>Call</code>执行请求时也就是<code>OkHttpCall</code>在调用方法执行请求。</li>
+<li><code>Call</code>在不管调用的是<code>enqueue</code>还是<code>execute</code>，都会创建一个<code>okhttp3.Call</code>，然后调用<code>okhttp3.Call</code>相应的方法</li>
+<li>在<code>okhttp3.Call</code>取得结果后就通过<code>Converter.Factory</code>创建的Converter解析生成接口的返回值。</li>
+</ol>
+<p>这里并没有使用<code>RxJava2CallAdapterFactory</code>和<code>GsonConverterFactory</code>等，是最基础的Retrofit请求流程了。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2019/03/19/Retrofit2-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="Retrofit2 源码解析" target="_blank" rel="external">https://blog.xusheng.online/2019/03/19/Retrofit2-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2019/04/18/RxJava2%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E8%AE%A2%E9%98%85%E6%B5%81%E7%A8%8B/" title="RxJava2源码解析-订阅流程"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2019/02/12/RecyclerView%E7%9A%84%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/" title="RecyclerView的缓存机制"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

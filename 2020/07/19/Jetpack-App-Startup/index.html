@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Jetpack App Startup | X档案</title>
+  <meta name="description" content="App Startup 是Jetpack套件新增的功能。它为应用程序提供类一种更加高效的方式来初始化组件的方式。 下面我们就来了解一下App Startup的使用方法和原理。 1. 开始使用导入依赖 为了使用App Startup，我们需要将它的依赖添加到build.gradle中 1implementation &quot;androidx.startup:startup-runtime:1.0">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Jetpack App Startup">
+<meta property="og:url" content="https://blog.xusheng.online/2020/07/19/Jetpack-App-Startup/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="App Startup 是Jetpack套件新增的功能。它为应用程序提供类一种更加高效的方式来初始化组件的方式。 下面我们就来了解一下App Startup的使用方法和原理。 1. 开始使用导入依赖 为了使用App Startup，我们需要将它的依赖添加到build.gradle中 1implementation &quot;androidx.startup:startup-runtime:1.0">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-07-19T11:34:05.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.724Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="Startup">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2020/07/19/Jetpack-App-Startup/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Jetpack-App-Startup" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Jetpack App Startup
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/07/19/Jetpack-App-Startup/" class="article-date">
+	  <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+	</a>
+</span>
+        
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Startup/" rel="tag">Startup</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/07/19/Jetpack-App-Startup/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>App Startup 是Jetpack套件新增的功能。它为应用程序提供类一种更加高效的方式来初始化组件的方式。</p>
+<p>下面我们就来了解一下App Startup的使用方法和原理。</p>
+<h3 id="1-开始使用"><a href="#1-开始使用" class="headerlink" title="1. 开始使用"></a>1. 开始使用</h3><p><strong>导入依赖</strong></p>
+<p>为了使用App Startup，我们需要将它的依赖添加到<code>build.gradle</code>中</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">implementation <span class="string">&quot;androidx.startup:startup-runtime:1.0.0-alpha03&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>初始化组件</strong></p>
+<p>初始化组件时需要我们自定义实现<code>Initializer</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 初始化组件A</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AAAInitializer</span> : <span class="type">Initializer</span>&lt;<span class="type">Int</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> TAG = <span class="string">&quot;AAAInitializer&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">create</span><span class="params">(context: <span class="type">Context</span>)</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line">        Log.d(TAG, <span class="string">&quot;create: &quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">dependencies</span><span class="params">()</span></span>: List&lt;Class&lt;<span class="keyword">out</span> Initializer&lt;*&gt;&gt;&gt; &#123;</span><br><span class="line">        <span class="keyword">return</span> listOf(BBBInitializer::<span class="keyword">class</span>.java)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 初始化组件B</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BBBInitializer</span> : <span class="type">Initializer</span>&lt;<span class="type">Int</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> TAG = <span class="string">&quot;BBBInitializer&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">create</span><span class="params">(context: <span class="type">Context</span>)</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line">        Log.d(TAG, <span class="string">&quot;create: &quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">dependencies</span><span class="params">()</span></span>: List&lt;Class&lt;<span class="keyword">out</span> Initializer&lt;*&gt;&gt;&gt; &#123;</span><br><span class="line">        <span class="keyword">return</span> listOf(CCCInitializer::<span class="keyword">class</span>.java)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 初始化组件C</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CCCInitializer</span> : <span class="type">Initializer</span>&lt;<span class="type">Int</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> TAG = <span class="string">&quot;CCCInitializer&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">create</span><span class="params">(context: <span class="type">Context</span>)</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line">        Log.d(TAG, <span class="string">&quot;create: &quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">dependencies</span><span class="params">()</span></span>: List&lt;Class&lt;<span class="keyword">out</span> Initializer&lt;*&gt;&gt;&gt; &#123;</span><br><span class="line">        <span class="keyword">return</span> emptyList()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>定义时<code>Initializer</code>，必须实现2种方法：</p>
+<ul>
+<li><p><code>create(context)</code>：提供<code>ApplicationContext</code>并初始化组件。</p>
+</li>
+<li><p><code>dependencies()</code>：返回在初始化当前依赖项之前需要初始化的依赖项列表。</p>
+<p>设置<code>Initializer</code>在应用启动时运行的顺序。如果<code>AAAInitializer</code>依赖<code>BBBInitializer</code>，并且<code>BBBInitializer</code>依赖<code>CCCInitializer</code>，那么<code>CCCInitializer</code>首先运行，其次是<code>BBBInitializer</code>，最后是<code>AAAInitializer</code>。</p>
+</li>
+</ul>
+<p><strong>注册Initializer</strong></p>
+<p>对于要在应用程序启动时自动初始化的组件，需要在AndroidManifest文件中的<code>&lt;meta-data&gt;</code>条目中对其<code>Initializer</code>进行声明。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">provider</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:name</span>=<span class="string">&quot;androidx.startup.InitializationProvider&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:authorities</span>=<span class="string">&quot;$&#123;applicationId&#125;.androidx-startup&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:exported</span>=<span class="string">&quot;false&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">tools:node</span>=<span class="string">&quot;merge&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta-data</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:name</span>=<span class="string">&quot;com.github.demo.AAAInitializer&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:value</span>=<span class="string">&quot;androidx.startup&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta-data</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:name</span>=<span class="string">&quot;com.github.demo.BBBInitializer&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:value</span>=<span class="string">&quot;androidx.startup&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta-data</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:name</span>=<span class="string">&quot;com.github.demo.CCCInitializer&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:value</span>=<span class="string">&quot;androidx.startup&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">provider</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>App Startup能够通过读取AndroidManifest文件中<code>InitializationProvider</code>条目下的<code>&lt;meta-data&gt;</code>条目来自动检测组件，以在应用程序加载后进行初始化。</p>
+<blockquote>
+<p>在注册时只要声明最高级的<code>Initializer</code>就可以。</p>
+</blockquote>
+<p>应用程序运行后的输出如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">D&#x2F;CCCInitializer: create: </span><br><span class="line">D&#x2F;BBBInitializer: create: </span><br><span class="line">D&#x2F;AAAInitializer: create: </span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>延迟初始化</strong></p>
+<p>当我们应用的组件不需要在启动时进行初始化，我们可以将<code>&lt;meta-data&gt;</code>指定的<code>Initializer</code>移除。还可以使用<code>tools:node=&quot;remove&quot;</code>来确保合并工具在合并Manifest文件时从其它Manifest文件中删除。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;provider</span><br><span class="line">    android:name=<span class="string">&quot;androidx.startup.InitializationProvider&quot;</span></span><br><span class="line">    android:authorities=<span class="string">&quot;<span class="subst">$&#123;applicationId&#125;</span>.androidx-startup&quot;</span></span><br><span class="line">    android:exported=<span class="string">&quot;false&quot;</span></span><br><span class="line">    tools:node=<span class="string">&quot;merge&quot;</span>&gt;</span><br><span class="line">    &lt;meta-<span class="keyword">data</span></span><br><span class="line">        android:name=<span class="string">&quot;com.github.demo.DDDInitializer&quot;</span></span><br><span class="line">        tools:node=<span class="string">&quot;remove&quot;</span> /&gt;</span><br><span class="line">&lt;/provider&gt;</span><br></pre></td></tr></table></figure>
+
+<p>当我们需要手动初始化时可以这样调用：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">AppInitializer.getInstance(applicationContext).initializeComponent(DDDInitializer::<span class="keyword">class</span>.java)</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="2-工作原理"><a href="#2-工作原理" class="headerlink" title="2. 工作原理"></a>2. 工作原理</h3><p><strong>InitializationProvider</strong></p>
+<p>在查看<code>InitializationProvider</code>之前，我们先自定义一个ContentProvider，来看看它是怎么启动的：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">App</span> :<span class="type">Application</span></span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">attachBaseContext</span><span class="params">(base: <span class="type">Context</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.attachBaseContext(base)</span><br><span class="line">        Log.d(<span class="string">&quot;AppStartup&quot;</span>, <span class="string">&quot;Application attachBaseContext: &quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate()</span><br><span class="line">        Log.d(<span class="string">&quot;AppStartup&quot;</span>, <span class="string">&quot;Application onCreate:&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CustomProvider</span> : <span class="type">ContentProvider</span></span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">()</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">        Log.d(<span class="string">&quot;AppStartup&quot;</span>, <span class="string">&quot;Provider onCreate: &quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">   ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动应用之后日志输入如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">D&#x2F;AppStartup: Application attachBaseContext: </span><br><span class="line">D&#x2F;AppStartup: Provider onCreate: </span><br><span class="line">D&#x2F;AppStartup: Application onCreate:</span><br></pre></td></tr></table></figure>
+
+<p>可以发现<code>ContentProvider#onCreate()</code>在<code>Application#onCreate()</code>之前运行。这是因为这个样，很多的第三方库已经不需要我们去手动调用初始化了，比如<a href="http://blog.xusheng.online/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/#2-1-LeakCanary%E5%88%9D%E5%A7%8B%E5%8C%96%E5%88%86%E6%9E%90">Leakcanary</a>等。</p>
+<p><code>InitializationProvider</code>就是是App Startup的初始化的入口，我们看看它是如何调用<code>Initializer</code>来初始化的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">InitializationProvider</span> <span class="keyword">extends</span> <span class="title">ContentProvider</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Context context = getContext();</span><br><span class="line">        <span class="keyword">if</span> (context != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 使用AppInitializer来发现和初始化Initializer</span></span><br><span class="line">            AppInitializer.getInstance(context).discoverAndInitialize();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> StartupException(<span class="string">&quot;Context cannot be null&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，这里只是调用了<code>AppInitializer</code>中<code>discoverAndInitialize</code>的方法，然后就直接返回了。</p>
+<p>那我们跟着进入<code>discoverAndInitialize()</code>：</p>
+<p><strong>AppInitializer</strong></p>
+<p><strong><em>discoverAndInitialize()</em></strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> Set&lt;Class&lt;? extends Initializer&lt;?&gt;&gt;&gt; mDiscovered; <span class="comment">// 用来保存已经发现的Initializer</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">discoverAndInitialize</span><span class="params">()</span> </span>&#123;</span><br><span class="line">       ...</span><br><span class="line">           ComponentName provider = <span class="keyword">new</span> ComponentName(mContext.getPackageName(),</span><br><span class="line">                   InitializationProvider.class.getName());</span><br><span class="line">           <span class="comment">// 获取InitializationProvider的信息</span></span><br><span class="line">           ProviderInfo providerInfo = mContext.getPackageManager()</span><br><span class="line">                   .getProviderInfo(provider, GET_META_DATA);</span><br><span class="line">           <span class="comment">// 获取InitializationProvider的&lt;meta-data&gt;节点</span></span><br><span class="line">           <span class="comment">// 它将我们传入的android:name作为key，android:value作为value</span></span><br><span class="line">           Bundle metadata = providerInfo.metaData;</span><br><span class="line">           <span class="comment">// 这个字符串就是“androidx_startup”</span></span><br><span class="line">           String startup = mContext.getString(R.string.androidx_startup);</span><br><span class="line">           <span class="keyword">if</span> (metadata != <span class="keyword">null</span>) &#123; <span class="comment">// 如果Provider中有&lt;meta-data&gt;节点</span></span><br><span class="line">               Set&lt;Class&lt;?&gt;&gt; initializing = <span class="keyword">new</span> HashSet&lt;&gt;();</span><br><span class="line">               Set&lt;String&gt; keys = metadata.keySet(); <span class="comment">// 遍历key</span></span><br><span class="line">               <span class="keyword">for</span> (String key : keys) &#123;</span><br><span class="line">                   String value = metadata.getString(key, <span class="keyword">null</span>);</span><br><span class="line">                   <span class="keyword">if</span> (startup.equals(value)) &#123; <span class="comment">// 判断value</span></span><br><span class="line">                       Class&lt;?&gt; clazz = Class.forName(key); <span class="comment">// 获取类对象</span></span><br><span class="line">                       <span class="keyword">if</span> (Initializer.class.isAssignableFrom(clazz)) &#123; </span><br><span class="line">                           <span class="comment">//判断Initializer是不是clazz的父类</span></span><br><span class="line">                           Class&lt;? extends Initializer&lt;?&gt;&gt; component =</span><br><span class="line">                                   (Class&lt;? extends Initializer&lt;?&gt;&gt;) clazz;</span><br><span class="line">                           mDiscovered.add(component); <span class="comment">// 添加到mDiscovered中</span></span><br><span class="line">                           <span class="keyword">if</span> (StartupLogger.DEBUG) &#123;</span><br><span class="line">                               StartupLogger.i(String.format(<span class="string">&quot;Discovered %s&quot;</span>, key));</span><br><span class="line">                           &#125;</span><br><span class="line">                           <span class="comment">// 去初始化</span></span><br><span class="line">                           doInitialize(component, initializing);</span><br><span class="line">                       &#125;</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125;</span><br><span class="line">           &#125;</span><br><span class="line">     ...</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>discoverAndInitialize</code>被调用的时候，它先获取<code>InitializationProvider</code>的metaData，然后将中的<code>Initializer</code>存入到已经<code>mDiscovered</code>中，最有调用<code>doInitialize()</code>去执行<code>Initializer</code>的相关操作。</p>
+<p><strong><em>doInitialize()</em></strong></p>
+<p>这里我们就可以看到<code>Initializer</code>的相关方法被执行了：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">   <span class="keyword">final</span> Map&lt;Class&lt;?&gt;, Object&gt; mInitialized; <span class="comment">// 用来保存已经初始化的组件</span></span><br><span class="line">&lt;T&gt; <span class="function">T <span class="title">doInitialize</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">           <span class="meta">@NonNull</span> Class&lt;? extends Initializer&lt;?&gt;&gt; component,</span></span></span><br><span class="line"><span class="function"><span class="params">           <span class="meta">@NonNull</span> Set&lt;Class&lt;?&gt;&gt; initializing)</span> </span>&#123;</span><br><span class="line">              ...</span><br><span class="line">               Object result;</span><br><span class="line">               <span class="comment">// 如果该组件已经初始化，直接从mInitialized获取</span></span><br><span class="line">               <span class="keyword">if</span> (!mInitialized.containsKey(component)) &#123;</span><br><span class="line">                   initializing.add(component);</span><br><span class="line">                   <span class="keyword">try</span> &#123;</span><br><span class="line">                       <span class="comment">// 通过反射创建Initializer对象</span></span><br><span class="line">                       Object instance = component.getDeclaredConstructor().newInstance();</span><br><span class="line">                       Initializer&lt;?&gt; initializer = (Initializer&lt;?&gt;) instance;</span><br><span class="line">                       List&lt;Class&lt;? extends Initializer&lt;?&gt;&gt;&gt; dependencies =</span><br><span class="line">                               initializer.dependencies(); <span class="comment">// 调用dependencies()获取依赖</span></span><br><span class="line"></span><br><span class="line">                       <span class="comment">// 如果当前Initializer依赖其它的Initializer</span></span><br><span class="line">                       <span class="comment">// 那么先去进行其它Initializer初始化</span></span><br><span class="line">                       <span class="comment">// 这就是为什么在manifest中只要注册优先级最高的Initializer的原因</span></span><br><span class="line">                       <span class="keyword">if</span> (!dependencies.isEmpty()) &#123;</span><br><span class="line">                           <span class="keyword">for</span> (Class&lt;? extends Initializer&lt;?&gt;&gt; clazz : dependencies) &#123;</span><br><span class="line">                               <span class="keyword">if</span> (!mInitialized.containsKey(clazz)) &#123;</span><br><span class="line">                                   <span class="comment">// 递归实现依赖的Initializer</span></span><br><span class="line">                                   doInitialize(clazz, initializing);</span><br><span class="line">                               &#125;</span><br><span class="line">                           &#125;</span><br><span class="line">                       &#125;</span><br><span class="line">                       </span><br><span class="line">                       <span class="comment">// 调用create()方法初始化我们的组件</span></span><br><span class="line">                       result = initializer.create(mContext);</span><br><span class="line">                       </span><br><span class="line">                       initializing.remove(component);</span><br><span class="line">                       mInitialized.put(component, result);</span><br><span class="line">                   &#125; <span class="keyword">catch</span> (Throwable throwable) &#123;</span><br><span class="line">                       <span class="keyword">throw</span> <span class="keyword">new</span> StartupException(throwable);</span><br><span class="line">                   &#125;</span><br><span class="line">               &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                   result = mInitialized.get(component);</span><br><span class="line">               &#125;</span><br><span class="line">               <span class="keyword">return</span> (T) result;</span><br><span class="line">           ...</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码可以明显的看到<code>Initializer</code>对象是通过反射来创建的。当<code>Initializer</code>对象创建好之后就调用<code>dependencies()</code>来看看它依赖哪些组件，如果有依赖那就创建它依赖的<code>Initializer</code>，如果没有那就执行<code>initializer.create()</code>来初始化我们的组件。</p>
+<p>这里是App Start的完整流程了。</p>
+<p>如果当我们手动调用<code>Initializer</code>进行初始化的时候，它也会去执行<code>doInitialize</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">initializeComponent</span><span class="params">(<span class="meta">@NonNull</span> Class&lt;? extends Initializer&lt;T&gt;&gt; component)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> doInitialize(component, <span class="keyword">new</span> HashSet&lt;Class&lt;?&gt;&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2020/07/19/Jetpack-App-Startup/" title="Jetpack App Startup" target="_blank" rel="external">https://blog.xusheng.online/2020/07/19/Jetpack-App-Startup/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    
+    <li class="next">
+      <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" title="kotlin-函数字面值"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

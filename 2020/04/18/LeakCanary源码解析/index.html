@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>LeakCanary源码解析 | X档案</title>
+  <meta name="description" content="LeakCanary是适用于Android的内存泄漏检测库。 本文基于LeakCanary最新2.2版本进行分析。 1. 开始使用要使用LeakCanary，只需要将leakcanary-android添加到项目的build.gradle中，无需在项目中修改代码。 1234dependencies &amp;#123;  &#x2F;&#x2F; debugImplementation because L">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LeakCanary源码解析">
+<meta property="og:url" content="https://blog.xusheng.online/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="LeakCanary是适用于Android的内存泄漏检测库。 本文基于LeakCanary最新2.2版本进行分析。 1. 开始使用要使用LeakCanary，只需要将leakcanary-android添加到项目的build.gradle中，无需在项目中修改代码。 1234dependencies &amp;#123;  &#x2F;&#x2F; debugImplementation because L">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-04-18T10:06:33.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.728Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="LeakCanary">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-LeakCanary源码解析" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      LeakCanary源码解析
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="article-date">
+	  <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/LeakCanary/" rel="tag">LeakCanary</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>LeakCanary是适用于Android的内存泄漏检测库。</p>
+<p>本文基于<a target="_blank" rel="noopener" href="https://github.com/square/leakcanary/tree/v2.2">LeakCanary</a>最新2.2版本进行分析。</p>
+<h3 id="1-开始使用"><a href="#1-开始使用" class="headerlink" title="1. 开始使用"></a>1. 开始使用</h3><p>要使用LeakCanary，只需要将<code>leakcanary-android</code>添加到项目的build.gradle中，无需在项目中修改代码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">  &#x2F;&#x2F; debugImplementation because LeakCanary should only run in debug builds.</span><br><span class="line">  debugImplementation &#39;com.squareup.leakcanary:leakcanary-android:2.2&#39;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-源码分析"><a href="#2-源码分析" class="headerlink" title="2. 源码分析"></a>2. 源码分析</h3><h4 id="2-1-LeakCanary初始化分析"><a href="#2-1-LeakCanary初始化分析" class="headerlink" title="2.1 LeakCanary初始化分析"></a>2.1 LeakCanary初始化分析</h4><blockquote>
+<p>LeakCanary为什么不需要修改项目中的代码就可以使用呢，它在何时进行初始化操作？</p>
+</blockquote>
+<p><strong>LeakCanary</strong>巧妙的利用了ContentProvider来进行初始化操作，ContentProvider的<code>onCreate()</code>方法会在Application的<code>onCreate()</code>方法之前被系统回调。所以只需要在AndroidManifest.xml中配置一下这个ContentProvider，然后在<code>onCreate()</code>方法中进行初始化即可。</p>
+<p><strong>AndroidManifest.xml</strong></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">application</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">provider</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:name</span>=<span class="string">&quot;leakcanary.internal.AppWatcherInstaller$MainProcess&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:authorities</span>=<span class="string">&quot;$&#123;applicationId&#125;.leakcanary-installer&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:exported</span>=<span class="string">&quot;false&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">application</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>AppWatcherInstaller.kt</strong></p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">internal</span> <span class="keyword">sealed</span> <span class="class"><span class="keyword">class</span> <span class="title">AppWatcherInstaller</span> : <span class="type">ContentProvider</span></span>() &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">internal</span> <span class="class"><span class="keyword">class</span> <span class="title">MainProcess</span> : <span class="type">AppWatcherInstaller</span></span>()</span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">()</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> application = context!!.applicationContext <span class="keyword">as</span> Application</span><br><span class="line">    InternalAppWatcher.install(application)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"> ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该ContentProvider除了在onCreate方法中进行了初始化处理，其他方法都是空实现。在onCreate方法中调用了<code>InternalAppWatcher.install(Application)</code>方法完成了LeakCanary的初始化操作。</p>
+<p><strong>InternalAppWatcher.kt</strong></p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">internal</span> <span class="keyword">object</span> InternalAppWatcher &#123;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 延迟5秒抛出任务</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> checkRetainedExecutor = Executor &#123;</span><br><span class="line">    mainHandler.postDelayed(it, AppWatcher.config.watchDurationMillis)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">val</span> objectWatcher = ObjectWatcher(</span><br><span class="line">      clock = clock,</span><br><span class="line">      checkRetainedExecutor = checkRetainedExecutor,</span><br><span class="line">      isEnabled = &#123; AppWatcher.config.enabled &#125;</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">install</span><span class="params">(application: <span class="type">Application</span>)</span></span> &#123;</span><br><span class="line">    ...</span><br><span class="line">    checkMainThread()</span><br><span class="line">    <span class="comment">// 如果已经初始化了，则不需要再次install</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">this</span>::application.isInitialized) &#123;</span><br><span class="line">      <span class="keyword">return</span></span><br><span class="line">    &#125;</span><br><span class="line">    InternalAppWatcher.application = application</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> configProvider = &#123; AppWatcher.config &#125;</span><br><span class="line">    <span class="comment">// 安装ActivityDestroyWatcher、FragmentDestroyWatcher</span></span><br><span class="line">    ActivityDestroyWatcher.install(application, objectWatcher, configProvider)</span><br><span class="line">    FragmentDestroyWatcher.install(application, objectWatcher, configProvider)</span><br><span class="line">    <span class="comment">// 回调InternalLeakCanary</span></span><br><span class="line">    onAppWatcherInstalled(application)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的这个install方法中，干了两件事:</p>
+<ol>
+<li>Activity、Fragment销毁的观察者的安装。</li>
+<li>回调<code>InternalLeakCanary.invoke()</code>。</li>
+</ol>
+<p>下面我们逐步分析这两件事情的具体内容。</p>
+<h4 id="2-2-Activity、Fragment观察"><a href="#2-2-Activity、Fragment观察" class="headerlink" title="2.2 Activity、Fragment观察"></a>2.2 Activity、Fragment观察</h4><p><strong>ActivityDestroyWatcher.kt</strong></p>
+<p>进入到<code>ActivityDestroyWatcher#install</code>方法中：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">val</span> lifecycleCallbacks =</span><br><span class="line">  <span class="keyword">object</span> : Application.ActivityLifecycleCallbacks <span class="keyword">by</span> noOpDelegate() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onActivityDestroyed</span><span class="params">(activity: <span class="type">Activity</span>)</span></span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (configProvider().watchActivities) &#123;</span><br><span class="line">        objectWatcher.watch(</span><br><span class="line">            activity, <span class="string">&quot;<span class="subst">$&#123;activity::class.java.name&#125;</span> received Activity#onDestroy() callback&quot;</span></span><br><span class="line">        )</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">install</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">    application: <span class="type">Application</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    objectWatcher: <span class="type">ObjectWatcher</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">    configProvider: () -&gt; <span class="type">Config</span></span></span></span><br><span class="line"><span class="function"><span class="params">  )</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> activityDestroyWatcher =</span><br><span class="line">      ActivityDestroyWatcher(objectWatcher, configProvider)</span><br><span class="line">    application.registerActivityLifecycleCallbacks(activityDestroyWatcher.lifecycleCallbacks)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的逻辑很简单，就是对于每个Activity，在其<code>onDestroy</code>方法调用之后，调用<code>objectWatcher.watch</code>观察这个Activity。</p>
+<p>然后我们看看Fragment的观察逻辑。</p>
+<p><strong>FragmentDestroyWatcher.kt</strong></p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">install</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">  application: <span class="type">Application</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  objectWatcher: <span class="type">ObjectWatcher</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  configProvider: () -&gt; <span class="type">AppWatcher</span>.<span class="type">Config</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span> &#123;</span><br><span class="line">  <span class="comment">// 这里等同于val fragmentDestroyWatchers = mutableListOf&lt;Function1&lt;Activity, Unit&gt;&gt;()</span></span><br><span class="line">  <span class="keyword">val</span> fragmentDestroyWatchers = mutableListOf&lt;(Activity) -&gt; <span class="built_in">Unit</span>&gt;()</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (SDK_INT &gt;= O) &#123;</span><br><span class="line">    <span class="comment">// 添加android.app.Fragment的观察者</span></span><br><span class="line">    fragmentDestroyWatchers.add(</span><br><span class="line">        AndroidOFragmentDestroyWatcher(objectWatcher, configProvider)</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取androidx.fragment.app.Fragment的观察者AndroidXFragmentDestroyWatcher</span></span><br><span class="line">  <span class="comment">// 如果存在则添加</span></span><br><span class="line">  getWatcherIfAvailable(</span><br><span class="line">      ANDROIDX_FRAGMENT_CLASS_NAME,</span><br><span class="line">      ANDROIDX_FRAGMENT_DESTROY_WATCHER_CLASS_NAME,</span><br><span class="line">      objectWatcher,</span><br><span class="line">      configProvider</span><br><span class="line">  )?.let &#123;</span><br><span class="line">    fragmentDestroyWatchers.add(it)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 获取android.support.v4.app.Fragment的观察者AndroidSupportFragmentDestroyWatcher</span></span><br><span class="line">  <span class="comment">// 如果存在则添加</span></span><br><span class="line">  getWatcherIfAvailable(</span><br><span class="line">      ANDROID_SUPPORT_FRAGMENT_CLASS_NAME,</span><br><span class="line">      ANDROID_SUPPORT_FRAGMENT_DESTROY_WATCHER_CLASS_NAME,</span><br><span class="line">      objectWatcher,</span><br><span class="line">      configProvider</span><br><span class="line">  )?.let &#123;</span><br><span class="line">    fragmentDestroyWatchers.add(it)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (fragmentDestroyWatchers.size == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 注册生命周期监听</span></span><br><span class="line">  application.registerActivityLifecycleCallbacks(<span class="keyword">object</span> : Application.ActivityLifecycleCallbacks <span class="keyword">by</span> noOpDelegate() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onActivityCreated</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      activity: <span class="type">Activity</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">      savedInstanceState: <span class="type">Bundle</span>?</span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span> &#123;</span><br><span class="line">      <span class="comment">// 在Activity创建时对所有Fragment进行观察</span></span><br><span class="line">      <span class="keyword">for</span> (watcher <span class="keyword">in</span> fragmentDestroyWatchers) &#123;</span><br><span class="line">        watcher(activity)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>FragmentDestroyWatcher</code>会根据不同的Fragment来创建<code>*FragmentDestroyWatcher</code>。这里的<code>*FragmentDestroyWatcher</code>是实现<code>Function&lt;Activity,Unit&gt;</code>接口。在Activity调用<code>onCreate</code>之后，使用<code>*FragmentDestroyWatcher.invoke()</code>来处理对Fragment的监听。</p>
+<p><code>AndroidOFragmentDestroyWatcher</code>、<code>AndroidXFragmentDestroyWatcher</code>和<code>AndroidSupportFragmentDestroyWatcher</code>的源码都非常类似，只是针对的Fragment不同而调用的API不同而已。但是<code>AndroidXFragmentDestroyWatcher</code>多了对ViewModel的监听，下面就以它为例看看具体是如何实现的：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">internal</span> <span class="class"><span class="keyword">class</span> <span class="title">AndroidXFragmentDestroyWatcher</span></span>(</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> objectWatcher: ObjectWatcher,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> configProvider: () -&gt; Config</span><br><span class="line">) : (Activity) -&gt; <span class="built_in">Unit</span> &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> fragmentLifecycleCallbacks = <span class="keyword">object</span> : FragmentManager.FragmentLifecycleCallbacks() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onFragmentCreated</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      fm: <span class="type">FragmentManager</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">      fragment: <span class="type">Fragment</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">      savedInstanceState: <span class="type">Bundle</span>?</span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span> &#123;</span><br><span class="line">      <span class="comment">// 在fragment创建的时候安装ViewModelClearedWatcher</span></span><br><span class="line">      ViewModelClearedWatcher.install(fragment, objectWatcher, configProvider)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onFragmentViewDestroyed</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      fm: <span class="type">FragmentManager</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">      fragment: <span class="type">Fragment</span></span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span> &#123;</span><br><span class="line">      <span class="keyword">val</span> view = fragment.view</span><br><span class="line">      <span class="keyword">if</span> (view != <span class="literal">null</span> &amp;&amp; configProvider().watchFragmentViews) &#123;</span><br><span class="line">        objectWatcher.watch(</span><br><span class="line">            view, <span class="string">&quot;<span class="subst">$&#123;fragment::class.java.name&#125;</span> received Fragment#onDestroyView() callback &quot;</span> +</span><br><span class="line">            <span class="string">&quot;(references to its views should be cleared to prevent leaks)&quot;</span></span><br><span class="line">        )</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onFragmentDestroyed</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      fm: <span class="type">FragmentManager</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">      fragment: <span class="type">Fragment</span></span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span> &#123;</span><br><span class="line">      <span class="comment">// 在销毁后观察fragment</span></span><br><span class="line">      <span class="keyword">if</span> (configProvider().watchFragments) &#123;</span><br><span class="line">        objectWatcher.watch(</span><br><span class="line">            fragment, <span class="string">&quot;<span class="subst">$&#123;fragment::class.java.name&#125;</span> received Fragment#onDestroy() callback&quot;</span></span><br><span class="line">        )</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">invoke</span><span class="params">(activity: <span class="type">Activity</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (activity <span class="keyword">is</span> FragmentActivity) &#123;</span><br><span class="line">      <span class="keyword">val</span> supportFragmentManager = activity.supportFragmentManager</span><br><span class="line">      supportFragmentManager.registerFragmentLifecycleCallbacks(fragmentLifecycleCallbacks, <span class="literal">true</span>)</span><br><span class="line">      <span class="comment">// 安装ViewModelClearedWatcher</span></span><br><span class="line">      ViewModelClearedWatcher.install(activity, objectWatcher, configProvider)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实际上就是向Activity的FragmentManager注册<code>FragmentLifecycleCallbacks</code>，这样在Fragment调用<code>onDestroyView</code>和<code>onDestory</code>之后就能观察Fragment的View或者Fragment本身了。</p>
+<p><code>ViewModelClearedWatcher</code>则是通过获取<code>ViewModelStore.mMap</code>，然后在执行生命周期<code>onCleared</code>遍历mMap的value进行观察。ViewModel的分析使用可以查看<a href="http://blog.xusheng.online/2020/08/09/Jetpack%E4%B9%8BViewModel/">Jetpack之ViewModel</a>，这里就不继续贴里面的代码了。</p>
+<h4 id="2-3-InternalLeakCanary"><a href="#2-3-InternalLeakCanary" class="headerlink" title="2.3 InternalLeakCanary"></a>2.3 InternalLeakCanary</h4><p>在Activity和Fragment的观察者之后，还调用了<code>onAppWatcherInstalled(application)</code>，这个方法做了什么工作呢？</p>
+<p><code>onAppWatcherInstalled</code>的定义为<code>private val onAppWatcherInstalled: (Application) -&gt; Unit</code>, 然后在<code>init</code>中通过反射将<code>InternalLeakCanary</code>复制给<code>onAppWatcherInstalled</code>。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">val</span> onAppWatcherInstalled: (Application) -&gt; <span class="built_in">Unit</span></span><br><span class="line"><span class="keyword">init</span> &#123;</span><br><span class="line">  <span class="keyword">val</span> internalLeakCanary = <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> leakCanaryListener = Class.forName(<span class="string">&quot;leakcanary.internal.InternalLeakCanary&quot;</span>)</span><br><span class="line">    leakCanaryListener.getDeclaredField(<span class="string">&quot;INSTANCE&quot;</span>)</span><br><span class="line">        .<span class="keyword">get</span>(<span class="literal">null</span>)</span><br><span class="line">  &#125; <span class="keyword">catch</span> (ignored: Throwable) &#123;</span><br><span class="line">    NoLeakCanary</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="meta">@kotlin</span>.Suppress(<span class="string">&quot;UNCHECKED_CAST&quot;</span>)</span><br><span class="line">  onAppWatcherInstalled = internalLeakCanary <span class="keyword">as</span> (Application) -&gt; <span class="built_in">Unit</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>onAppWatcherInstalled(application)</code>相当于调用了<code>InternalLeakCanary#invoke()</code>。所以接着查看<code>InternalLeakCanary#invoke()</code>即可，该方法也是完成了一些初始化操作，如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">invoke</span><span class="params">(application: <span class="type">Application</span>)</span></span> &#123;</span><br><span class="line">  <span class="keyword">this</span>.application = application</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 内存泄漏时回调该类的方法</span></span><br><span class="line">  AppWatcher.objectWatcher.addOnObjectRetainedListener(<span class="keyword">this</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> heapDumper = AndroidHeapDumper(application, leakDirectoryProvider)</span><br><span class="line"></span><br><span class="line">  <span class="comment">//使用默认的GcTrigger</span></span><br><span class="line">  <span class="keyword">val</span> gcTrigger = GcTrigger.Default</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> configProvider = &#123; LeakCanary.config &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//使用HandlerThread + Handler 来处理后台任务</span></span><br><span class="line">  <span class="keyword">val</span> handlerThread = HandlerThread(LEAK_CANARY_THREAD_NAME)</span><br><span class="line">  handlerThread.start()</span><br><span class="line">  <span class="keyword">val</span> backgroundHandler = Handler(handlerThread.looper)</span><br><span class="line"></span><br><span class="line">  heapDumpTrigger = HeapDumpTrigger(</span><br><span class="line">      application, backgroundHandler, AppWatcher.objectWatcher, gcTrigger, heapDumper,</span><br><span class="line">      configProvider</span><br><span class="line">  )</span><br><span class="line">  <span class="comment">// 检测App是否可见</span></span><br><span class="line">  application.registerVisibilityListener &#123; applicationVisible -&gt;</span><br><span class="line">    <span class="keyword">this</span>.applicationVisible = applicationVisible</span><br><span class="line">    heapDumpTrigger.onApplicationVisibilityChanged(applicationVisible)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 为resumedActivity赋值</span></span><br><span class="line">  registerResumedActivityListener(application)</span><br><span class="line">  <span class="comment">// 动态添加Shortcut</span></span><br><span class="line">  addDynamicShortcut(application)</span><br><span class="line"></span><br><span class="line">  disableDumpHeapInTests()</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><code>AppWatcher.objectWatcher</code>其实就是<code>InternalAppWatcher.objectWatcher</code>, 这里添加了一个<code>OnObjectRetainedListener</code>监听器。</p>
+<p><code>heapDumper</code>的作用是通过<code>Debug.dumpHprofData(heapDumpFile.absolutePath)</code>将堆转储到文件中。</p>
+<p><code>gcTrigger</code>是通过调用<code>Runtime.getRuntime().gc()</code>来出发gc操作。</p>
+<p><code>HeapDumpTrigger</code> 是用来管理<code>Heap Dump</code>的。当<code>objectWatcher</code>的监听器触发之后，就会调用<code>heapDumpTrigger.onObjectRetained()</code>。</p>
+<h4 id="2-4-小结"><a href="#2-4-小结" class="headerlink" title="2.4 小结"></a>2.4 小结</h4><p>先不去管<code>ObjectWatcher.OnObjectRetainedListener</code>是怎么触发的，也不去关心<code>HeapDumpTrigger.onObjectRetained</code>进行了何种操作，我们先把初始化相关的流程捋清楚在去查看它们的以下原理。</p>
+<p>LeakCanary通过ContentProvider<code>AppWatcherInstaller</code>在创建的时候执行<code>InternalAppWatcher.install()</code>操作。<code>InternalAppWatcher</code>定义了<code>ObjectWatcher</code>对象，在<code>InternalAppWatcher.install()</code>中分别将<code>objectWatcher</code>传递给Activity<code>ActivityDestroyWatcher</code>和<code>FragmentDestroyWatcher</code>用来观察Activity和Fragment的销毁，然后回调用<code>InternalLeakCanary.invoke</code>完成操作。<code>InternalLeakCanary.invoke</code>则是为objectWatcher添加对象保留监听器，并在监听器触发的时候调用<code>HeapDumpTrigger.onObjectRetained</code>。</p>
+<p>这样LeakCanary就初始化安装完毕了，下面我们看看<code>ObjectWatcher</code>是如何观察Activity和Fragment，并触发<code>HeapDumpTrigger</code>方法的，以及<code>HeapDumpTrigger</code>被触发后进行哪些操作。</p>
+<h3 id="3-内存泄漏"><a href="#3-内存泄漏" class="headerlink" title="3. 内存泄漏"></a>3. 内存泄漏</h3><h4 id="3-1-ObjectWatcher"><a href="#3-1-ObjectWatcher" class="headerlink" title="3.1 ObjectWatcher"></a>3.1 ObjectWatcher</h4><p>现在我们来看看<code>ObjectWatcher.watch(Any)</code>方法，Activity、Fragment都是由该方法进行观察的，所以最后还是统一回到了这里。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Synchronized</span> <span class="function"><span class="keyword">fun</span> <span class="title">watch</span><span class="params">(watchedObject: <span class="type">Any</span>)</span></span> &#123;</span><br><span class="line">  watch(watchedObject, <span class="string">&quot;&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Synchronized</span> <span class="function"><span class="keyword">fun</span> <span class="title">watch</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">  watchedObject: <span class="type">Any</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  description: <span class="type">String</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (!isEnabled()) &#123;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 将ReferenceQueue中出现的弱引用移除</span></span><br><span class="line">  removeWeaklyReachableObjects()</span><br><span class="line">  <span class="keyword">val</span> key = UUID.randomUUID()</span><br><span class="line">      .toString()</span><br><span class="line">  <span class="comment">// 观测时间</span></span><br><span class="line">  <span class="keyword">val</span> watchUptimeMillis = clock.uptimeMillis()</span><br><span class="line">  <span class="comment">// 创建一个自定义弱引用KeyedWeakReference</span></span><br><span class="line">  <span class="comment">// 调用了基类的WeakReference&lt;Any&gt;(referent, referenceQueue)构造器</span></span><br><span class="line">  <span class="comment">// KeyedWeakReference在被回收前后出现在ReferenceQueue中</span></span><br><span class="line">  <span class="keyword">val</span> reference =</span><br><span class="line">    KeyedWeakReference(watchedObject, key, description, watchUptimeMillis, queue)</span><br><span class="line">  SharkLog.d &#123;</span><br><span class="line">    <span class="string">&quot;Watching &quot;</span> +</span><br><span class="line">        (<span class="keyword">if</span> (watchedObject <span class="keyword">is</span> Class&lt;*&gt;) watchedObject.toString() <span class="keyword">else</span> <span class="string">&quot;instance of <span class="subst">$&#123;watchedObject.javaClass.name&#125;</span>&quot;</span>) +</span><br><span class="line">        (<span class="keyword">if</span> (description.isNotEmpty()) <span class="string">&quot; (<span class="variable">$description</span>)&quot;</span> <span class="keyword">else</span> <span class="string">&quot;&quot;</span>) +</span><br><span class="line">        <span class="string">&quot; with key <span class="variable">$key</span>&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 将KeyedWeakReference保存到map中</span></span><br><span class="line">  watchedObjects[key] = reference</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 主线程5秒后会执行</span></span><br><span class="line">  checkRetainedExecutor.execute &#123;</span><br><span class="line">    moveToRetained(key)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码的逻辑是：</p>
+<ol>
+<li><p>将要观测的对象使用WeakReference保存起来，并在构造时传入一个ReferenceQueue。在垃圾回收器扫描它所管辖的内存区域过程中，一旦gc发现对象是可被被回收(弱可达)，就会把它放到ReferenceQueue中。</p>
+</li>
+<li><p>5秒钟之后再检查一下是否出现在了引用队列中，若出现了，则没有泄露。（为什么默认的是5秒呢？）</p>
+</li>
+</ol>
+<p>下面我们进一步查看<code>removeWeaklyReachableObjects()</code>与<code>moveToRetained(key)</code>：</p>
+<p><strong>removeWeaklyReachableObjects()</strong></p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">removeWeaklyReachableObjects</span><span class="params">()</span></span> &#123;</span><br><span class="line">  <span class="comment">// WeakReferences are enqueued as soon as the object to which they point to becomes weakly</span></span><br><span class="line">  <span class="comment">// reachable. This is before finalization or garbage collection has actually happened.</span></span><br><span class="line">  <span class="keyword">var</span> ref: KeyedWeakReference?</span><br><span class="line">  <span class="keyword">do</span> &#123;</span><br><span class="line">    ref = queue.poll() <span class="keyword">as</span> KeyedWeakReference?</span><br><span class="line">    <span class="keyword">if</span> (ref != <span class="literal">null</span>) &#123;</span><br><span class="line">      watchedObjects.remove(ref.key)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">while</span> (ref != <span class="literal">null</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以 <code>removeWeaklyReachableObjects()</code> 方法的作用就是将可被回收(弱可达)的对象从<code>watchedObjects</code>中移除。</p>
+<p><strong>moveToRetained(key)</strong></p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Synchronized</span> <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">moveToRetained</span><span class="params">(key: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">  removeWeaklyReachableObjects()</span><br><span class="line">  <span class="keyword">val</span> retainedRef = watchedObjects[key]</span><br><span class="line">  <span class="keyword">if</span> (retainedRef != <span class="literal">null</span>) &#123;</span><br><span class="line">    retainedRef.retainedUptimeMillis = clock.uptimeMillis()</span><br><span class="line">    onObjectRetainedListeners.forEach &#123; it.onObjectRetained() &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>同样的，先执行一次<code>removeWeaklyReachableObjects()</code>， 那么剩下的对象就可以被认为有可能产生内存泄漏。这时候记录下内存泄漏的时间，然后回调所有监听器执行<code>onObjectRetained()</code>。</p>
+<h4 id="3-2-HeapDumpTrigger"><a href="#3-2-HeapDumpTrigger" class="headerlink" title="3.2 HeapDumpTrigger"></a>3.2 HeapDumpTrigger</h4><p>上面我们看到ObjectWatcher中的<code>onObjectRetained</code>会执行<code>HeapDumpTrigger.onObjectRetained()</code>，那么我们就进入到这个方法中：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">onObjectRetained</span><span class="params">()</span></span> &#123;</span><br><span class="line">  scheduleRetainedObjectCheck(</span><br><span class="line">      reason = <span class="string">&quot;found new object retained&quot;</span>,</span><br><span class="line">      rescheduling = <span class="literal">false</span></span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">scheduleRetainedObjectCheck</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">  reason: <span class="type">String</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  rescheduling: <span class="type">Boolean</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  delayMillis: <span class="type">Long</span> = <span class="number">0</span>L</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span> &#123;</span><br><span class="line">  <span class="keyword">val</span> checkCurrentlyScheduledAt = checkScheduledAt</span><br><span class="line">  <span class="keyword">if</span> (checkCurrentlyScheduledAt &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 同一时间只能出现一次任务</span></span><br><span class="line">    <span class="keyword">val</span> scheduledIn = checkCurrentlyScheduledAt - SystemClock.uptimeMillis()</span><br><span class="line">    SharkLog.d &#123; <span class="string">&quot;Ignoring request to check for retained objects (<span class="variable">$reason</span>), already scheduled in <span class="subst">$&#123;scheduledIn&#125;</span>ms&quot;</span> &#125;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> verb = <span class="keyword">if</span> (rescheduling) <span class="string">&quot;Rescheduling&quot;</span> <span class="keyword">else</span> <span class="string">&quot;Scheduling&quot;</span></span><br><span class="line">    <span class="keyword">val</span> delay = <span class="keyword">if</span> (delayMillis &gt; <span class="number">0</span>) <span class="string">&quot; in <span class="subst">$&#123;delayMillis&#125;</span>ms&quot;</span> <span class="keyword">else</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    SharkLog.d &#123; <span class="string">&quot;<span class="variable">$verb</span> check for retained objects<span class="subst">$&#123;delay&#125;</span> because <span class="variable">$reason</span>&quot;</span> &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  checkScheduledAt = SystemClock.uptimeMillis() + delayMillis</span><br><span class="line">  <span class="comment">// 使用backgroundHandler去检查被保留的对象(objectWatcher.watchedObjects)</span></span><br><span class="line">  backgroundHandler.postDelayed(&#123;</span><br><span class="line">    checkScheduledAt = <span class="number">0</span></span><br><span class="line">    checkRetainedObjects(reason)</span><br><span class="line">  &#125;, delayMillis)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">checkRetainedObjects</span><span class="params">(reason: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">  <span class="keyword">val</span> config = configProvider()</span><br><span class="line">  <span class="comment">// A tick will be rescheduled when this is turned back on.</span></span><br><span class="line">  <span class="keyword">if</span> (!config.dumpHeap) &#123;</span><br><span class="line">    SharkLog.d &#123; <span class="string">&quot;Ignoring check for retained objects scheduled because <span class="variable">$reason</span>: LeakCanary.Config.dumpHeap is false&quot;</span> &#125;</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// objectWatcher.watchedObjects中剩余的引用个数，</span></span><br><span class="line">  <span class="comment">// 得到个数之前仍然会执行removeWeaklyReachableObjects()</span></span><br><span class="line">  <span class="keyword">var</span> retainedReferenceCount = objectWatcher.retainedObjectCount</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (retainedReferenceCount &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 手动调用System.gc()</span></span><br><span class="line">    gcTrigger.runGc()</span><br><span class="line">    <span class="comment">// 重新获取个数</span></span><br><span class="line">    retainedReferenceCount = objectWatcher.retainedObjectCount</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 检测当前保留对象数量</span></span><br><span class="line">  <span class="keyword">if</span> (checkRetainedCount(retainedReferenceCount, config.retainedVisibleThreshold)) <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!config.dumpHeapWhenDebugging &amp;&amp; DebuggerControl.isDebuggerAttached) &#123;</span><br><span class="line">    <span class="comment">// 默认Debug的时候不执行，并安排在20秒后</span></span><br><span class="line">    onRetainInstanceListener.onEvent(DebuggerIsAttached)</span><br><span class="line">    showRetainedCountNotification(</span><br><span class="line">        objectCount = retainedReferenceCount,</span><br><span class="line">        contentText = application.getString(</span><br><span class="line">            R.string.leak_canary_notification_retained_debugger_attached</span><br><span class="line">        )</span><br><span class="line">    )</span><br><span class="line">    scheduleRetainedObjectCheck(</span><br><span class="line">        reason = <span class="string">&quot;debugger is attached&quot;</span>,</span><br><span class="line">        rescheduling = <span class="literal">true</span>,</span><br><span class="line">        delayMillis = WAIT_FOR_DEBUG_MILLIS</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> now = SystemClock.uptimeMillis()</span><br><span class="line">  <span class="keyword">val</span> elapsedSinceLastDumpMillis = now - lastHeapDumpUptimeMillis</span><br><span class="line">  <span class="keyword">if</span> (elapsedSinceLastDumpMillis &lt; WAIT_BETWEEN_HEAP_DUMPS_MILLIS) &#123;</span><br><span class="line">    <span class="comment">// 60秒只会执行一次，并重新安排时间</span></span><br><span class="line">    onRetainInstanceListener.onEvent(DumpHappenedRecently)</span><br><span class="line">    showRetainedCountNotification(</span><br><span class="line">        objectCount = retainedReferenceCount,</span><br><span class="line">        contentText = application.getString(R.string.leak_canary_notification_retained_dump_wait)</span><br><span class="line">    )</span><br><span class="line">    scheduleRetainedObjectCheck(</span><br><span class="line">        reason = <span class="string">&quot;previous heap dump was <span class="subst">$&#123;elapsedSinceLastDumpMillis&#125;</span>ms ago (&lt; <span class="subst">$&#123;WAIT_BETWEEN_HEAP_DUMPS_MILLIS&#125;</span>ms)&quot;</span>,</span><br><span class="line">        rescheduling = <span class="literal">true</span>,</span><br><span class="line">        delayMillis = WAIT_BETWEEN_HEAP_DUMPS_MILLIS - elapsedSinceLastDumpMillis</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  SharkLog.d &#123; <span class="string">&quot;Check for retained objects found <span class="variable">$retainedReferenceCount</span> objects, dumping the heap&quot;</span> &#125;</span><br><span class="line">  dismissRetainedCountNotification()</span><br><span class="line">  dumpHeap(retainedReferenceCount, retry = <span class="literal">true</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">checkRetainedCount</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">  retainedKeysCount: <span class="type">Int</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  retainedVisibleThreshold: <span class="type">Int</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">  <span class="keyword">val</span> countChanged = lastDisplayedRetainedObjectCount != retainedKeysCount</span><br><span class="line">  lastDisplayedRetainedObjectCount = retainedKeysCount</span><br><span class="line">  <span class="keyword">if</span> (retainedKeysCount == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">// 没有被保留的对象，说明没有泄漏</span></span><br><span class="line">    SharkLog.d &#123; <span class="string">&quot;Check for retained object found no objects remaining&quot;</span> &#125;</span><br><span class="line">    <span class="keyword">if</span> (countChanged) &#123;</span><br><span class="line">      onRetainInstanceListener.onEvent(NoMoreObjects)</span><br><span class="line">      showNoMoreRetainedObjectNotification()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (retainedKeysCount &lt; retainedVisibleThreshold) &#123;</span><br><span class="line">    <span class="comment">// 被保留的对象小于5个</span></span><br><span class="line">    <span class="keyword">if</span> (applicationVisible || applicationInvisibleLessThanWatchPeriod) &#123;</span><br><span class="line">      <span class="comment">// 当前应用可见，或者不可见时间间隔少于 5s，重新安排到 2s 后</span></span><br><span class="line">      <span class="keyword">if</span> (countChanged) &#123;</span><br><span class="line">        onRetainInstanceListener.onEvent(BelowThreshold(retainedKeysCount))</span><br><span class="line">      &#125;</span><br><span class="line">      showRetainedCountNotification(</span><br><span class="line">          objectCount = retainedKeysCount,</span><br><span class="line">          contentText = application.getString(</span><br><span class="line">              R.string.leak_canary_notification_retained_visible, retainedVisibleThreshold</span><br><span class="line">          )</span><br><span class="line">      )</span><br><span class="line">      scheduleRetainedObjectCheck(</span><br><span class="line">          reason = <span class="string">&quot;found only <span class="variable">$retainedKeysCount</span> retained objects (&lt; <span class="variable">$retainedVisibleThreshold</span> while app visible)&quot;</span>,</span><br><span class="line">          rescheduling = <span class="literal">true</span>,</span><br><span class="line">          delayMillis = WAIT_FOR_OBJECT_THRESHOLD_MILLIS</span><br><span class="line">      )</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先进入<code>onObjectRetained()</code>，该方法会调用<code>scheduleRetainedObjectCheck()</code>。此方法也就是在后台线程中执行<code>checkRetainedObjects()</code>来检查泄漏的对象： </p>
+<ol>
+<li><p>首先获取保留对象的个数，如果大于0，则GC一次之后再次获取 。</p>
+</li>
+<li><p>如果gc后的保留数为0直接返回。如果保留对象小于5个并且应用可见，或者不可见时间间隔少于 5s，重新安排<code>scheduleRetainedObjectCheck()</code>到 2s 后。否则进行下一步操作。</p>
+</li>
+<li><p>如果config里面配置的“调试时不允许dump heap”为false（默认值）且正在调试，则20s之后再试 </p>
+</li>
+<li><p>判断<code>lastHeapDumpUptimeMillis</code>和当前时间间隔，如果小于60秒则重新安排<code>scheduleRetainedObjectCheck()</code>。</p>
+</li>
+<li><p>执行<code>dumpHeap()</code>。</p>
+</li>
+</ol>
+<p><strong>dumpHeap</strong></p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">dumpHeap</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">  retainedReferenceCount: <span class="type">Int</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">  retry: <span class="type">Boolean</span></span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span> &#123;</span><br><span class="line">  saveResourceIdNamesToMemory()</span><br><span class="line">  <span class="keyword">val</span> heapDumpUptimeMillis = SystemClock.uptimeMillis()</span><br><span class="line">  KeyedWeakReference.heapDumpUptimeMillis = heapDumpUptimeMillis</span><br><span class="line">  <span class="comment">// 获取hprof文件</span></span><br><span class="line">  <span class="keyword">val</span> heapDumpFile = heapDumper.dumpHeap()</span><br><span class="line">  <span class="keyword">if</span> (heapDumpFile == <span class="literal">null</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (retry) &#123;</span><br><span class="line">      SharkLog.d &#123; <span class="string">&quot;Failed to dump heap, will retry in <span class="variable">$WAIT_AFTER_DUMP_FAILED_MILLIS</span> ms&quot;</span> &#125;</span><br><span class="line">      <span class="comment">// 如果文件为空并且重试时重新安排任务</span></span><br><span class="line">      scheduleRetainedObjectCheck(</span><br><span class="line">          reason = <span class="string">&quot;failed to dump heap&quot;</span>,</span><br><span class="line">          rescheduling = <span class="literal">true</span>,</span><br><span class="line">          delayMillis = WAIT_AFTER_DUMP_FAILED_MILLIS</span><br><span class="line">      )</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      SharkLog.d &#123; <span class="string">&quot;Failed to dump heap, will not automatically retry&quot;</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    showRetainedCountNotification(</span><br><span class="line">        objectCount = retainedReferenceCount,</span><br><span class="line">        contentText = application.getString(</span><br><span class="line">            R.string.leak_canary_notification_retained_dump_failed</span><br><span class="line">        )</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">  &#125;</span><br><span class="line">  lastDisplayedRetainedObjectCount = <span class="number">0</span></span><br><span class="line">  <span class="comment">// 设置HeapDump时间</span></span><br><span class="line">  lastHeapDumpUptimeMillis = SystemClock.uptimeMillis()</span><br><span class="line">  <span class="comment">//这些对象我们已经 dump 出来分析了，所以没必要保留它们了</span></span><br><span class="line">  objectWatcher.clearObjectsWatchedBefore(heapDumpUptimeMillis)</span><br><span class="line">  <span class="comment">// 使用HeapAnalyzerService分析hprof文件</span></span><br><span class="line">  HeapAnalyzerService.runAnalysis(application, heapDumpFile)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先调用 HeapDumper.dumpHeap() 获取 hprof 文件，接着调用<code>ObjectWatcher.clearObjectsWatchedBefore() </code> 清理被观察的<code>watchedObjects</code>，最后调用 <code>HeapAnalyzerService.runAnalysis()</code> 进行分析。HeapAnalyzerService启动了一个前台进程然后使用<code>HeapAnalyzer</code>对文件进行分析，这里就不继续跟进了。</p>
+<h3 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h3><ul>
+<li>LeakCanary通过注册ContentProvider来实现初始化。</li>
+<li>注册Activity、Fragment的生命周期监听，当对象销毁时触发<code>ObjectWatcher.watch()</code>。</li>
+<li><code>ObjectWatcher.watch()</code>将对象包装成KeyedReference，并关联到ReferenceQueue。</li>
+<li>延迟5秒根据ReferenceQueue来清除<code>watchedObjects</code>中弱可达的值。</li>
+<li>如果<code>watchedObjects</code>中包含对象的引用，那么通知监听器。</li>
+<li>监听器触发<code>HeapDumpTrigger.onObjectRetained()</code>。</li>
+<li>onObjectRetained安排后台检查对象并手动调用<code>System.gc()</code>来查看对象保留。</li>
+<li>进行<code>dumpHeap()</code> 生成hprof文件，并启动<code>HeapAnalyzerService</code>来分析hprof文件。</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="LeakCanary源码解析" target="_blank" rel="external">https://blog.xusheng.online/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" title="Kotlin委托属性(Delegate)"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2019/11/29/Jetpack%E4%B9%8BViewModel/" title="Jetpack之ViewModel"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>kotlin Coroutines | X档案</title>
+  <meta name="description" content="Coroutines一般我们都会成协程，单看这个翻译我们很难去理解它的意思。Coroutines其实是由两个单词组合而成的，分别是cooperation和routine。cooperation是指合作，routine指的是例行程序、常规作业，所以我们可以把它翻译为合作的例行程序。 routine在这里指的是程序中的方法，所以说这种将方法协同其它方法来共同作业的方式就叫做Coroutines。 Co">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kotlin Coroutines">
+<meta property="og:url" content="https://blog.xusheng.online/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="Coroutines一般我们都会成协程，单看这个翻译我们很难去理解它的意思。Coroutines其实是由两个单词组合而成的，分别是cooperation和routine。cooperation是指合作，routine指的是例行程序、常规作业，所以我们可以把它翻译为合作的例行程序。 routine在这里指的是程序中的方法，所以说这种将方法协同其它方法来共同作业的方式就叫做Coroutines。 Co">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-06-26T06:42:36.000Z">
+<meta property="article:modified_time" content="2020-09-13T15:40:23.825Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="Coroutines">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-kotlin协程" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      kotlin Coroutines
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="article-date">
+	  <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Kotlin/">Kotlin</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Coroutines/" rel="tag">Coroutines</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>Coroutines一般我们都会成协程，单看这个翻译我们很难去理解它的意思。Coroutines其实是由两个单词组合而成的，分别是cooperation和routine。cooperation是指合作，routine指的是例行程序、常规作业，所以我们可以把它翻译为合作的例行程序。</p>
+<p>routine在这里指的是程序中的方法，所以说这种将方法协同其它方法来共同作业的方式就叫做Coroutines。</p>
+<p>Coroutines允许方法暂停执行(suspend)后再恢复执行(resume)，而被暂停的方法状态运行被保留，恢复后再以暂停前的状态继续执行。</p>
+<h3 id="1-开始使用"><a href="#1-开始使用" class="headerlink" title="1. 开始使用"></a>1. 开始使用</h3><p>kotlin coroutines不包含在stdlib包中，需要我们单独引入：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">implementation <span class="string">&#x27;org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.7&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>我们先从一个简单的例子开始，使用界面来展示一个获取验证码倒计时。</p>
+<p>先来看看没有使用Coroutines之前我们的写法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> countDown = <span class="keyword">object</span> :AsyncTask&lt;<span class="built_in">Void</span>, <span class="built_in">Int</span>, <span class="built_in">Void</span>&gt;() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">doInBackground</span><span class="params">(<span class="keyword">vararg</span> params: <span class="type">Void</span>?)</span></span>: <span class="built_in">Void</span>? &#123;</span><br><span class="line">        <span class="keyword">for</span> (i <span class="keyword">in</span> <span class="number">60</span> downTo <span class="number">0</span>) &#123;</span><br><span class="line">            publishProgress(i)</span><br><span class="line">            Thread.sleep(<span class="number">1_000</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onProgressUpdate</span><span class="params">(<span class="keyword">vararg</span> values: <span class="type">Int</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onProgressUpdate(*values)</span><br><span class="line">        textView.text = <span class="string">&quot;<span class="subst">$&#123;values.elementAtOrNull(<span class="number">0</span>)&#125;</span>秒&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">countDown.execute()</span><br></pre></td></tr></table></figure>
+
+<p>再来对比一下使用Coroutines：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">GlobalScope.launch(Dispatchers.Main) &#123;</span><br><span class="line">    <span class="keyword">for</span>(i <span class="keyword">in</span> <span class="number">60</span> downTo <span class="number">0</span>) &#123;</span><br><span class="line">        textView.text = <span class="string">&quot;<span class="subst">$&#123;i&#125;</span>秒&quot;</span></span><br><span class="line">        delay(<span class="number">1_000</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>是不是相比使用<code>AsyncTask</code>简单的多(另外，Android中有专门的<code>CountDownTimer</code>来实现计时器)，下面我们来看看它们的具体含义。</p>
+<h3 id="2-Scope"><a href="#2-Scope" class="headerlink" title="2. Scope"></a>2. Scope</h3><p>Scope指的是Coroutines的作用范围。</p>
+<p><code>GlobalScope</code>继承自<code>CoroutineScope</code>，它的作用范围伴随着整个应用程序的生命周期。：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">CoroutineScope</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">val</span> coroutineContext: CoroutineContext</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当然我们在实际开发的时候不会经常去使用GlobalScope，而是按照Activity或者Fragment的生命周期来使用自定义的CoroutineScope，当生命周期完成的时候取消GlobalScope里的运行方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> : <span class="type">AppCompatActivity</span></span>(), CoroutineScope &#123;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">var</span> countDownJob: Job? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">val</span> coroutineContext: CoroutineContext</span><br><span class="line">        <span class="keyword">get</span>() = EmptyCoroutineContext</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">        setContentView(R.layout.activity_main)</span><br><span class="line"></span><br><span class="line">        countDownJob = launch &#123;</span><br><span class="line">            <span class="keyword">for</span> (i <span class="keyword">in</span> <span class="number">60</span> downTo <span class="number">0</span>) &#123;</span><br><span class="line">                textView.text = <span class="string">&quot;<span class="subst">$&#123;i&#125;</span>秒&quot;</span></span><br><span class="line">                delay(<span class="number">1_000</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onDestroy</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onDestroy()</span><br><span class="line">        countDownJob?.cancel()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面我们来介绍一下<code>Job</code>和<code>CoroutineContext</code>。</p>
+<h3 id="3-Job"><a href="#3-Job" class="headerlink" title="3. Job"></a>3. Job</h3><p>Job从字面意思来看，就是指工作。</p>
+<p>从Scope的角度来说，Scope可以管理它作用域下面所有的方法，当Scope取消的时候就会取消掉Scope中所有在执行的方法。假如我们现在有一个上传和一个下载的方法同时在Scope中运行，当我们要取消下载的时候就不能使用<code>Scope.cancel()</code>，而是轮到Job出场了。</p>
+<p>我们可以看到，Scope使用<code>launch</code>扩展方法的时候返回的就是一个Job。所以Job就是单个Coroutines的生命周期。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">                                     wait children</span><br><span class="line">+-----+ start  +--------+ complete   +-------------+  finish  +-----------+</span><br><span class="line">| New | -----&gt; | Active | ---------&gt; | Completing  | -------&gt; | Completed |</span><br><span class="line">+-----+        +--------+            +-------------+          +-----------+</span><br><span class="line">                 |  cancel &#x2F; fail       |</span><br><span class="line">                 |     +----------------+</span><br><span class="line">                 |     |</span><br><span class="line">                 V     V</span><br><span class="line">             +------------+                           finish  +-----------+</span><br><span class="line">             | Cancelling | --------------------------------&gt; | Cancelled |</span><br><span class="line">             +------------+                                   +-----------+</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>来自<a target="_blank" rel="noopener" href="https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/Job.kt">Job类的注解</a></p>
+</blockquote>
+<h3 id="4-CoroutineContext"><a href="#4-CoroutineContext" class="headerlink" title="4. CoroutineContext"></a>4. CoroutineContext</h3><p><code>CoroutineContext</code>指的就是Coroutines的上下文。</p>
+<p>协程中的代码是在CoroutineContext中执行的，CoroutineContext为我们提供了异步运行/执行代码所需的执行环境。</p>
+<p><code>CoroutineContext</code>是各种不同元素的集合，其中主元素是协程中的 <em>Job</em>。对于Scope 、CoroutineContext 、Job 三者间的关系，简单的来说就是：<strong>Scope 包含了CoroutinContext，而CoroutineContext 里Element就是Job</strong>。</p>
+<p>想要对CoroutineContext有更多了解，可以参考<a target="_blank" rel="noopener" href="https://medium.com/@elizarov/coroutine-context-and-scope-c8b255d59055">Coroutine Context and Scope</a>。</p>
+<h3 id="5-Dispatcher"><a href="#5-Dispatcher" class="headerlink" title="5. Dispatcher"></a>5. Dispatcher</h3><p>Dispatcher就是Coroutines中的调度器。它其实就是Kotlin为我们封装好的<code>CoroutineContext</code>。</p>
+<p>在Kotlinx coroutine中有四种Dispatcher分别是：</p>
+<ul>
+<li><strong>Dispatchers.Main</strong>：就是主线程的包装，在Android 需要操作到UI 线程 通常会用它</li>
+<li><strong>Dispatchers.Default</strong>：默认的Dispatcher，将协程执行限制在共享的后台线程池中</li>
+<li><strong>Dispatchers.IO</strong>：基于Default 去加强的Dispatchers。它跟Default 最本质的区别在于，它开的线程数量会比较多，以Default 来说是N ( JVM 给的数量，个平台机子会不同)，而IO 则会给上64 个，如果JVM 给更多，那就更多那样。</li>
+<li><strong>Dispatchers.Unconfined</strong>：不局限于任何特定线程的Dispatcher，通常他会跑在执行该Coroutines 的线程 上，但是在suspend后被回复可能会跑到另一个线程 上。</li>
+</ul>
+<p>像是MainScope 的CoroutineContext 是supervisorJob() + Dispatcher.Main，所以MainScop 实质上是提供一个主线程 为context 的Scope。</p>
+<p>在Android 上Dispatcher.Main 会将launch 的程序跑在UI 线程上，那Dispatcher.IO 则会将launch 的程序跑在worker 线程上，通常会用来跑耗时作业，其实就是用比较简易的方式决定Coroutines 执行的CoroutineContext。</p>
+<h3 id="6-Suspend"><a href="#6-Suspend" class="headerlink" title="6. Suspend"></a>6. Suspend</h3><p>这时候轮到Coroutines中最重要的suspend了，先来看一段代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">fetchUser</span><span class="params">()</span></span> = withContext (Dispatchers.IO) &#123; </span><br><span class="line">  <span class="comment">// fetch user from network</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>withContext(Dispathcers.IO) </code>的意思就是要让这东西跑在Worker 线程上。</p>
+<p>另外可以看到，这个方法 前面加了一个<code>suspend</code> ，表示执行到这个function 时是可以被suspend (暂停)的。</p>
+<p>在Coroutines的代码块中，线程的代码在到达 <code>suspend</code> 函数的时候被掐断，接下来协程会从这个 <code>suspend</code> 函数开始继续往下执行，不过是在<code>withContext</code>指定的线程。在 <code>suspend</code> 函数执行完成之后，会根据传入的Dispatcher将线程切回到原来的线程。</p>
+<p> <code>suspend</code>关键字 起到的并不是切换线程的作用，而是用于IDE的提示。所以fun 前面注记的suspend 必须要在coroutineScope 的launch 、runBlocking 内或者是其他的suspend method 才能够被使用。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" title="kotlin Coroutines" target="_blank" rel="external">https://blog.xusheng.online/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" title="kotlin-函数字面值"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" title="Kotlin委托属性(Delegate)"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Service | X档案</title>
+  <meta name="description" content="Service 是一种可以在Android系统后台运行并且不需要操作界面的应用组件。  Service与线程的选择？ 如果任务只在应用程序与用户有交互的情况下产生，并且任务很占时间或者会引起阻塞，则使用线程（AsyncTask、HandlerThread等）。 如果在应用程序与用户无交互的情况下仍需处理任务，那么用Service，因为Service是在后台运行的。同时仍要注意是否需要在Servic">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Service">
+<meta property="og:url" content="https://blog.xusheng.online/2018/06/29/Service/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="Service 是一种可以在Android系统后台运行并且不需要操作界面的应用组件。  Service与线程的选择？ 如果任务只在应用程序与用户有交互的情况下产生，并且任务很占时间或者会引起阻塞，则使用线程（AsyncTask、HandlerThread等）。 如果在应用程序与用户无交互的情况下仍需处理任务，那么用Service，因为Service是在后台运行的。同时仍要注意是否需要在Servic">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.xusheng.online/2018/06/29/Service/service_lifecycle.png">
+<meta property="article:published_time" content="2018-06-29T06:43:31.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.730Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="Service">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.xusheng.online/2018/06/29/Service/service_lifecycle.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2018/06/29/Service/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Service" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Service
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2018/06/29/Service/" class="article-date">
+	  <time datetime="2018-06-29T06:43:31.000Z" itemprop="datePublished">2018-06-29</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Android/">Android</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Service/" rel="tag">Service</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2018/06/29/Service/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p><code>Service</code> 是一种可以在Android系统后台运行并且不需要操作界面的应用组件。</p>
+<blockquote>
+<p>Service与线程的选择？</p>
+<p>如果任务只在应用程序与用户有交互的情况下产生，并且任务很占时间或者会引起阻塞，则使用线程（AsyncTask、HandlerThread等）。</p>
+<p>如果在应用程序与用户无交互的情况下仍需处理任务，那么用Service，因为Service是在后台运行的。同时仍要注意是否需要在Service中另起线程，默认情况下Service运行在主线程。</p>
+</blockquote>
+<h3 id="1-Service的启动类型"><a href="#1-Service的启动类型" class="headerlink" title="1. Service的启动类型"></a>1. Service的启动类型</h3><p>Service的启动类型有两种：</p>
+<ol>
+<li><p><strong>Start启动服务</strong></p>
+<p>Service由其他组件通过<code>startService()</code>启动时，Service处于启动状态。Service启动后，其生命周期独立于启动它的组件。即使系统销毁了启动Service的组件，该Service仍然可以在后台无期限的运行。通过<code>startService()</code>启动的Service通常不与其他组件进行交互。Service在运行完成时通过调用<code>stopSelf()</code>或由其他组件调用<code>stopService()</code>来停止运行。</p>
+</li>
+<li><p><strong>Bind绑定服务</strong></p>
+<p>Service由其他组件通过<code>bindService()</code>启动时，Service处于绑定状态。如果要与 Activity 和其他应用组件中的服务进行交互，那么应该使用<code>bindService()</code>。Service需通过实现 <code>onBind()</code> 回调方法返回 <code>IBinder</code>，从而定义与服务进行通信的接口。实现绑定服务有多种方法，并且此实现比启动服务更为复杂，参考Google文档<a target="_blank" rel="noopener" href="https://developer.android.com/guide/components/bound-services?hl=zh-cn">绑定服务</a>。</p>
+</li>
+</ol>
+<blockquote>
+<p>注意事项：</p>
+<ol>
+<li>启动状态与绑定状态不是完全独立的。可以绑定到已使用 <code>startService()</code> 启动的服务。</li>
+<li>无论调用多少次<code>startService()</code>，只需要<code>stopService</code>或者<code>stopSelf</code>一次。在同一组件中调用多从<code>bindService()</code>只需要调用一次<code>unbindService()</code>，否则调用多次<code>bindService</code>，必须调用多次<code>unbindService</code>。</li>
+</ol>
+</blockquote>
+<h3 id="2-Service的生命周期"><a href="#2-Service的生命周期" class="headerlink" title="2. Service的生命周期"></a>2. Service的生命周期</h3><h4 id="2-1-生命周期方法"><a href="#2-1-生命周期方法" class="headerlink" title="2.1 生命周期方法"></a>2.1 生命周期方法</h4><p>Service主要有四个生命周期方法：<code>onCreate()</code>、<code>onStartCommand()</code>、<code>onBind()</code>、<code>onDestroy()</code>：</p>
+<ul>
+<li><p><code>onCreate()</code>：首次创建Service时，系统会通过调用此方法进行初始化设置。调用时间在<code>onStartCommand</code>和<code>onBind</code>之前。如果该Service已经处于运行状态，此方法不会调用。</p>
+</li>
+<li><p><code>onStartCommand()</code>：当其他组件通过<code>startService()</code>来启动Service时，系统会调用此方法。当该方法执行时，Service会启动并在后台无期限的运行。如果实现此方法，则需要在Service工作完成后调用 <code>stopSelf()</code> 或 <code>stopService()</code> 来停止服务。<code>onStartCommand()</code>的返回值必须是以下三种常量之一：</p>
+<ol>
+<li><strong>START_No_STICK</strong>：如果系统在 <code>onStartCommand()</code> 返回后终止Service，则除非有待传递的挂起 Intent，否则系统<em>不会</em>重建Service。</li>
+<li><strong>START_STICK</strong>：如果系统在 <code>onStartCommand()</code> 返回后终止Service，则其会重建Service并调用 <code>onStartCommand()</code>，但<em>不会</em>重新传递最后一个 Intent。</li>
+<li><strong>START_REDELIVER_INTENT</strong>：如果系统在 <code>onStartCommand()</code> 返回后终止Service，则其会重建Service，并通过传递给Service的最后一个 Intent 调用 <code>onStartCommand()</code>。所有挂起 Intent 均依次传递。</li>
+</ol>
+</li>
+<li><p><code>onBind()</code>：当另一个组件 <code>bindService()</code>来启动Service时，系统 来调用此方法。在此方法的实现中，您必须通过返回 <code>IBinder</code> 提供一个接口，以供客户端用来与服务进行通信。</p>
+</li>
+<li><p><code>onDestory()</code>：当Service不在使用时，系统会调用此方法。</p>
+</li>
+</ul>
+<h4 id="2-2-生命周期"><a href="#2-2-生命周期" class="headerlink" title="2.2 生命周期"></a>2.2 生命周期</h4><img src="/2018/06/29/Service/service_lifecycle.png" class="" title="service_lifecycle">
+
+<p>通过实现上述方法，可以监控Service生命周期的两种嵌套循环：</p>
+<ul>
+<li><p><strong>整个生命周期</strong>：从调用 <code>onCreate()</code> 到返回 <code>onDestroy()</code> 之间的这段时间。</p>
+</li>
+<li><p><strong>活动生命周期</strong>：开始于对<code>onStartCommand()</code>或<code>onBind()</code>的调用。对于<code>startService</code>，活动生命周期与整个生命周期结束，对于<code>bindService</code>，活动周期在调用<code>onUnbind()</code>后结束。</p>
+</li>
+</ul>
+<p>对于已经处于启动状态的Service，再次通过<code>startService</code>或<code>bindService</code>来启动同一个Service，其<code>onCreate</code>不会再次调用，而是直接调用对应的<code>onStartCommand()</code>或者<code>onBind()</code>方法。</p>
+<h3 id="3-IntentService"><a href="#3-IntentService" class="headerlink" title="3. IntentService"></a>3. IntentService</h3><p><code>IntentService</code> 是继承自 Service 并处理异步请求的一个类，在 <code>IntentService</code> 内有一个工作线程来处理耗时操作，当任务执行完后，IntentService 会自动停止。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">ServiceHandler</span> <span class="keyword">extends</span> <span class="title">Handler</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ServiceHandler</span><span class="params">(Looper looper)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(looper);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handleMessage</span><span class="params">(Message msg)</span> </span>&#123;</span><br><span class="line">        onHandleIntent((Intent)msg.obj);</span><br><span class="line">        stopSelf(msg.arg1);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onCreate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate();</span><br><span class="line">    HandlerThread thread = <span class="keyword">new</span> HandlerThread(<span class="string">&quot;IntentService[&quot;</span> + mName + <span class="string">&quot;]&quot;</span>);</span><br><span class="line">    thread.start();</span><br><span class="line">    mServiceLooper = thread.getLooper();</span><br><span class="line">    mServiceHandler = <span class="keyword">new</span> ServiceHandler(mServiceLooper);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>IntentService</code>会执行以下操作：</p>
+<ol>
+<li><p>创建默认的工作线程(<code>HandlerThread</code>)来处理Service接收到的Intent请求。</p>
+</li>
+<li><p>创建工作队列(<code>ServiceHandler</code>)，用于将 Intent 逐一传递给 <code>onHandleIntent()</code> 实现。</p>
+</li>
+<li><p>处理完所有启动请求后停止Service，不必调用 <code>stopSelf()</code>。</p>
+</li>
+<li><p><code>onBind()</code>默认返回null。</p>
+</li>
+<li><p>提供<code>onStartCommand()</code>的默认实现，它将Intent发送到工作队列，然后转发到<code>onHandleIntent()</code>。</p>
+</li>
+</ol>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2018/06/29/Service/" title="Service" target="_blank" rel="external">https://blog.xusheng.online/2018/06/29/Service/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2018/07/23/Broadcasts/" title="Broadcasts"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2018/06/08/LayoutInflater%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/" title="LayoutInflater布局加载流程"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

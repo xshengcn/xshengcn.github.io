@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>OkHttp源码解析 | X档案</title>
+  <meta name="description" content="1. 开始使用在build.gradle中添加依赖： 12def okhttpVersion &#x3D; &quot;4.2.2&quot;implementation &quot;com.squareup.okhttp3:okhttp:$okhttpVersion&quot;   OkHttp 4.0后就使用了Kotlin来重写  创建OkHttpClient： 12val okHttpClient &#x3D;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OkHttp源码解析">
+<meta property="og:url" content="https://blog.xusheng.online/2019/08/15/OkHttp%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="1. 开始使用在build.gradle中添加依赖： 12def okhttpVersion &#x3D; &quot;4.2.2&quot;implementation &quot;com.squareup.okhttp3:okhttp:$okhttpVersion&quot;   OkHttp 4.0后就使用了Kotlin来重写  创建OkHttpClient： 12val okHttpClient &#x3D;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.xusheng.online/2019/08/15/OkHttp%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/okhttp_full_process.png">
+<meta property="article:published_time" content="2019-08-15T00:48:17.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.728Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="OkHttp">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.xusheng.online/2019/08/15/OkHttp%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/okhttp_full_process.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2019/08/15/OkHttp%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-OkHttp源码解析" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      OkHttp源码解析
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2019/08/15/OkHttp%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="article-date">
+	  <time datetime="2019-08-15T00:48:17.000Z" itemprop="datePublished">2019-08-15</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/OkHttp/" rel="tag">OkHttp</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2019/08/15/OkHttp%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h3 id="1-开始使用"><a href="#1-开始使用" class="headerlink" title="1. 开始使用"></a>1. 开始使用</h3><p>在<code>build.gradle</code>中添加依赖：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> okhttpVersion = <span class="string">&quot;4.2.2&quot;</span></span><br><span class="line">implementation <span class="string">&quot;com.squareup.okhttp3:okhttp:$okhttpVersion&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>OkHttp 4.0后就使用了Kotlin来重写</p>
+</blockquote>
+<p>创建<code>OkHttpClient</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> okHttpClient = OkHttpClient.Builder()</span><br><span class="line">            .build()</span><br></pre></td></tr></table></figure>
+
+<p>发送请求并响应返回结果:</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> request = Request.Builder()</span><br><span class="line">        .url(<span class="string">&quot;url&quot;</span>)</span><br><span class="line">        .build()</span><br><span class="line"><span class="keyword">val</span> call = okHttpClient.newCall(request)</span><br><span class="line"><span class="keyword">val</span> response = call.execute()</span><br></pre></td></tr></table></figure>
+
+<p>下面我们以这个例子为切入点，开始分析OkHttp的内部实现。</p>
+<h3 id="2-OkHttpClient的创建"><a href="#2-OkHttpClient的创建" class="headerlink" title="2.  OkHttpClient的创建"></a>2.  OkHttpClient的创建</h3><p>OkHttpClient的创建方式有两种：通过<code>OkHttpClient.Builder</code>创建和直接使用构造方创建，：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="class"><span class="keyword">class</span> <span class="title">OkHttpClient</span> <span class="keyword">internal</span> <span class="keyword">constructor</span></span>(</span><br><span class="line">  builder: Builder</span><br><span class="line">) : Cloneable, Call.Factory, WebSocket.Factory &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">constructor</span>() : <span class="keyword">this</span>(Builder())</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (builder.sslSocketFactoryOrNull != <span class="literal">null</span> || connectionSpecs.none &#123; it.isTls &#125;) &#123;</span><br><span class="line">      <span class="keyword">this</span>.sslSocketFactoryOrNull = builder.sslSocketFactoryOrNull</span><br><span class="line">      <span class="keyword">this</span>.certificateChainCleaner = builder.certificateChainCleaner</span><br><span class="line">      <span class="keyword">this</span>.x509TrustManager = builder.x509TrustManagerOrNull</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">this</span>.x509TrustManager = Platform.<span class="keyword">get</span>().platformTrustManager()</span><br><span class="line">      Platform.<span class="keyword">get</span>().configureTrustManager(x509TrustManager)</span><br><span class="line">      <span class="keyword">this</span>.sslSocketFactoryOrNull = newSslSocketFactory(x509TrustManager!!)</span><br><span class="line">      <span class="keyword">this</span>.certificateChainCleaner = CertificateChainCleaner.<span class="keyword">get</span>(x509TrustManager!!)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (sslSocketFactoryOrNull != <span class="literal">null</span>) &#123;</span><br><span class="line">      Platform.<span class="keyword">get</span>().configureSslSocketFactory(sslSocketFactoryOrNull)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">this</span>.certificatePinner = builder.certificatePinner</span><br><span class="line">        .withCertificateChainCleaner(certificateChainCleaner)</span><br><span class="line"></span><br><span class="line">    check(<span class="literal">null</span> !<span class="keyword">in</span> (interceptors <span class="keyword">as</span> List&lt;Interceptor?&gt;)) &#123;</span><br><span class="line">      <span class="string">&quot;Null interceptor: <span class="variable">$interceptors</span>&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    check(<span class="literal">null</span> !<span class="keyword">in</span> (networkInterceptors <span class="keyword">as</span> List&lt;Interceptor?&gt;)) &#123;</span><br><span class="line">      <span class="string">&quot;Null network interceptor: <span class="variable">$networkInterceptors</span>&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  ...</span><br><span class="line">  </span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> <span class="keyword">constructor</span></span>() &#123;</span><br><span class="line">      </span><br><span class="line">      ...</span><br><span class="line">      <span class="function"><span class="keyword">fun</span> <span class="title">build</span><span class="params">()</span></span>: OkHttpClient = OkHttpClient(<span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>init</code>里面为一些属性赋值，但是对比一下之前版本的构造方法，发现少了很多的内容：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">OkHttpClient(Builder builder) &#123;</span><br><span class="line">  <span class="keyword">this</span>.dispatcher = builder.dispatcher;</span><br><span class="line">  <span class="keyword">this</span>.proxy = builder.proxy;</span><br><span class="line">  <span class="keyword">this</span>.protocols = builder.protocols;</span><br><span class="line">  <span class="keyword">this</span>.connectionSpecs = builder.connectionSpecs;</span><br><span class="line">  <span class="keyword">this</span>.interceptors = Util.immutableList(builder.interceptors);</span><br><span class="line">  <span class="keyword">this</span>.networkInterceptors = Util.immutableList(builder.networkInterceptors);</span><br><span class="line">  <span class="keyword">this</span>.eventListenerFactory = builder.eventListenerFactory;</span><br><span class="line">  <span class="keyword">this</span>.proxySelector = builder.proxySelector;</span><br><span class="line">  <span class="keyword">this</span>.cookieJar = builder.cookieJar;</span><br><span class="line">  <span class="keyword">this</span>.cache = builder.cache;</span><br><span class="line">  <span class="keyword">this</span>.internalCache = builder.internalCache;</span><br><span class="line">  <span class="keyword">this</span>.socketFactory = builder.socketFactory;</span><br><span class="line">  <span class="keyword">this</span>.hostnameVerifier = builder.hostnameVerifier;</span><br><span class="line">  <span class="keyword">this</span>.certificatePinner = builder.certificatePinner.withCertificateChainCleaner(</span><br><span class="line">      certificateChainCleaner);</span><br><span class="line">  <span class="keyword">this</span>.proxyAuthenticator = builder.proxyAuthenticator;</span><br><span class="line">  <span class="keyword">this</span>.authenticator = builder.authenticator;</span><br><span class="line">  <span class="keyword">this</span>.connectionPool = builder.connectionPool;</span><br><span class="line">  <span class="keyword">this</span>.dns = builder.dns;</span><br><span class="line">  <span class="keyword">this</span>.followSslRedirects = builder.followSslRedirects;</span><br><span class="line">  <span class="keyword">this</span>.followRedirects = builder.followRedirects;</span><br><span class="line">  <span class="keyword">this</span>.retryOnConnectionFailure = builder.retryOnConnectionFailure;</span><br><span class="line">  <span class="keyword">this</span>.connectTimeout = builder.connectTimeout;</span><br><span class="line">  <span class="keyword">this</span>.readTimeout = builder.readTimeout;</span><br><span class="line">  <span class="keyword">this</span>.writeTimeout = builder.writeTimeout;</span><br><span class="line">  <span class="keyword">this</span>.pingInterval = builder.pingInterval;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是因为kotlin的成员变量可以通过构造方法中的参数来赋值：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@get:JvmName</span>(<span class="string">&quot;dispatcher&quot;</span>) <span class="keyword">val</span> dispatcher: Dispatcher = builder.dispatcher</span><br><span class="line"><span class="meta">@get:JvmName</span>(<span class="string">&quot;connectionPool&quot;</span>) <span class="keyword">val</span> connectionPool: ConnectionPool = builder.connectionPool</span><br><span class="line"><span class="meta">@get:JvmName</span>(<span class="string">&quot;interceptors&quot;</span>) <span class="keyword">val</span> interceptors: List&lt;Interceptor&gt; =</span><br><span class="line">    builder.interceptors.toImmutableList()</span><br><span class="line"><span class="meta">@get:JvmName</span>(<span class="string">&quot;networkInterceptors&quot;</span>) <span class="keyword">val</span> networkInterceptors: List&lt;Interceptor&gt; =</span><br><span class="line">    builder.networkInterceptors.toImmutableList()</span><br><span class="line"><span class="meta">@get:JvmName</span>(<span class="string">&quot;eventListenerFactory&quot;</span>) <span class="keyword">val</span> eventListenerFactory: EventListener.Factory =</span><br><span class="line">    builder.eventListenerFactory</span><br><span class="line"><span class="meta">@get:JvmName</span>(<span class="string">&quot;retryOnConnectionFailure&quot;</span>) <span class="keyword">val</span> retryOnConnectionFailure: <span class="built_in">Boolean</span> =</span><br><span class="line">    builder.retryOnConnectionFailure</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>这里每个字段的意思先不去详细了解，我们的目的是为了了解它内部的实现机制。</p>
+<h3 id="3-Request、Call"><a href="#3-Request、Call" class="headerlink" title="3. Request、Call"></a>3. Request、Call</h3><p>接下来我们看看如何去创建一个请求。</p>
+<h4 id="3-1-Request"><a href="#3-1-Request" class="headerlink" title="3.1 Request"></a>3.1 Request</h4><p><code>Request</code>中的代码很简单，也是通过构造方法或者<code>Request.Builder</code>来创建：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Request</span> <span class="keyword">internal</span> <span class="keyword">constructor</span></span>(</span><br><span class="line">  <span class="meta">@get:JvmName</span>(<span class="string">&quot;url&quot;</span>) <span class="keyword">val</span> url: HttpUrl, <span class="comment">// 请求Url</span></span><br><span class="line">  <span class="meta">@get:JvmName</span>(<span class="string">&quot;method&quot;</span>) <span class="keyword">val</span> method: String, <span class="comment">// 请求方法 GET、POST</span></span><br><span class="line">  <span class="meta">@get:JvmName</span>(<span class="string">&quot;headers&quot;</span>) <span class="keyword">val</span> headers: Headers, <span class="comment">// 请求头</span></span><br><span class="line">  <span class="meta">@get:JvmName</span>(<span class="string">&quot;body&quot;</span>) <span class="keyword">val</span> body: RequestBody?, <span class="comment">// 请求体</span></span><br><span class="line">  <span class="keyword">internal</span> <span class="keyword">val</span> tags: Map&lt;Class&lt;*&gt;, Any&gt; <span class="comment">// 请求tag</span></span><br><span class="line">) &#123;</span><br><span class="line">  <span class="keyword">open</span> <span class="class"><span class="keyword">class</span> <span class="title">Builder</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">open</span> <span class="function"><span class="keyword">fun</span> <span class="title">build</span><span class="params">()</span></span>: Request &#123;</span><br><span class="line">      <span class="keyword">return</span> Request(</span><br><span class="line">          checkNotNull(url) &#123; <span class="string">&quot;url == null&quot;</span> &#125;,</span><br><span class="line">          method,</span><br><span class="line">          headers.build(),</span><br><span class="line">          body,</span><br><span class="line">          tags.toImmutableMap()</span><br><span class="line">      )</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-2-Call"><a href="#3-2-Call" class="headerlink" title="3.2 Call"></a>3.2 Call</h3><p>我们回到<code>okHttpClient.newCall(request)</code>这一行代码。这里<code>OkHttpClient</code>通过我们的请求信息来创建了一个<code>Call</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">newCall</span><span class="params">(request: <span class="type">Request</span>)</span></span>: Call &#123;</span><br><span class="line">  <span class="keyword">return</span> RealCall.newRealCall(<span class="keyword">this</span>, request, forWebSocket = <span class="literal">false</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的<code>RealCall</code>是Call的实现类，我们先来看看Call的接口方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Call</span> : <span class="type">Cloneable &#123;</span></span></span><br><span class="line">  <span class="comment">// 原始请求信息</span></span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">request</span><span class="params">()</span></span>: Request</span><br><span class="line">  <span class="comment">// 通过执行请求</span></span><br><span class="line">  <span class="meta">@Throws(IOException::class)</span></span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">execute</span><span class="params">()</span></span>: Response</span><br><span class="line">  <span class="comment">// 异步执行请求</span></span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">enqueue</span><span class="params">(responseCallback: <span class="type">Callback</span>)</span></span></span><br><span class="line">  <span class="comment">// 尽可能的取消请求，已完成的请求无法被取消</span></span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">cancel</span><span class="params">()</span></span></span><br><span class="line">  <span class="comment">// 调用execute或者enqueue都返回true</span></span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">isExecuted</span><span class="params">()</span></span>: <span class="built_in">Boolean</span></span><br><span class="line">  <span class="comment">// 是否被取消</span></span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">isCanceled</span><span class="params">()</span></span>: <span class="built_in">Boolean</span></span><br><span class="line">  <span class="comment">// 超时</span></span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">timeout</span><span class="params">()</span></span>: Timeout</span><br><span class="line">  <span class="comment">// 创建一个与当前Call相同的Call，即使当前Call已经被execute或者enqueue</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">clone</span><span class="params">()</span></span>: Call</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>回到<code>RealCall</code>，看看它的<code>newRealCall()</code>以及构造方法等：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">internal</span> <span class="class"><span class="keyword">class</span> <span class="title">RealCall</span> <span class="keyword">private</span> <span class="keyword">constructor</span></span>(</span><br><span class="line">  <span class="keyword">val</span> client: OkHttpClient,</span><br><span class="line">  <span class="keyword">val</span> originalRequest: Request,</span><br><span class="line">  <span class="keyword">val</span> forWebSocket: <span class="built_in">Boolean</span></span><br><span class="line">) : Call &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">lateinit</span> <span class="keyword">var</span> transmitter: Transmitter</span><br><span class="line">  <span class="keyword">var</span> executed: <span class="built_in">Boolean</span> = <span class="literal">false</span></span><br><span class="line">    </span><br><span class="line">  <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">newRealCall</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      client: <span class="type">OkHttpClient</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">      originalRequest: <span class="type">Request</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">      forWebSocket: <span class="type">Boolean</span></span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span>: RealCall &#123;</span><br><span class="line">      <span class="comment">// Safely publish the Call instance to the EventListener.</span></span><br><span class="line">      <span class="keyword">return</span> RealCall(client, originalRequest, forWebSocket).apply &#123;</span><br><span class="line">        transmitter = Transmitter(client, <span class="keyword">this</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>Transmitter</code>是OkHttp的应用层和网络层之间的桥梁。</p>
+<h3 id="3-3-Transmitter"><a href="#3-3-Transmitter" class="headerlink" title="3.3 Transmitter"></a>3.3 Transmitter</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Transmitter</span></span>(</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> client: OkHttpClient,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> call: Call</span><br><span class="line">) &#123;</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> connectionPool: RealConnectionPool = client.connectionPool.delegate</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> eventListener: EventListener = client.eventListenerFactory.create(call)</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> timeout = <span class="keyword">object</span> : AsyncTimeout() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">timedOut</span><span class="params">()</span></span> &#123;</span><br><span class="line">      cancel()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;.apply &#123;</span><br><span class="line">    timeout(client.callTimeoutMillis.toLong(), MILLISECONDS)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在创建 Transmitter 对象传入了OkHttpClient对象和RealCall对象，并设置了相关指标的监听器和 ConnectionPool。</p>
+<p>具体的方法在后续执行的时候我们再深入了解。</p>
+<h3 id="4-RealCall-execute"><a href="#4-RealCall-execute" class="headerlink" title="4. RealCall.execute()"></a>4. RealCall.execute()</h3><p>接下来我们重点看看OkHttp是如何放送请求的。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">execute</span><span class="params">()</span></span>: Response &#123;</span><br><span class="line">  synchronized(<span class="keyword">this</span>) &#123;</span><br><span class="line">    check(!executed) &#123; <span class="string">&quot;Already Executed&quot;</span> &#125;</span><br><span class="line">    executed = <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line">  transmitter.timeoutEnter()</span><br><span class="line">  transmitter.callStart()</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    client.dispatcher.executed(<span class="keyword">this</span>)</span><br><span class="line">    <span class="keyword">return</span> getResponseWithInterceptorChain()</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    client.dispatcher.finished(<span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以看到<code>RealCall.execute()</code>执行时，立马将<code>executed</code>设置为true，如果多次调用就会报错。</p>
+<p>接下来轮到我们看看<code>transmitter.timeoutEnter()</code>和<code>transmitter.callStart()</code>两个方法理的内容：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Transmitter</span></span>(</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> client: OkHttpClient,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> call: Call</span><br><span class="line">) &#123;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> eventListener: EventListener = client.eventListenerFactory.create(call)</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> timeout = <span class="keyword">object</span> : AsyncTimeout() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">timedOut</span><span class="params">()</span></span> &#123;</span><br><span class="line">      cancel()</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;.apply &#123;</span><br><span class="line">    timeout(client.callTimeoutMillis.toLong(), MILLISECONDS)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">timeoutEnter</span><span class="params">()</span></span> &#123;</span><br><span class="line">    timeout.enter()</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">callStart</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">this</span>.callStackTrace = Platform.<span class="keyword">get</span>().getStackTraceForCloseable(<span class="string">&quot;response.body().close()&quot;</span>)</span><br><span class="line">    eventListener.callStart(call)</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>EventListener</code>用于Call事件的监听器，里面的接口对应了Call的每个事件。在 这里默认的是EventListener.NONE空实现，当我们要监听Call事件的时候我们可以看看<a target="_blank" rel="noopener" href="https://github.com/square/okhttp/blob/master/okhttp-logging-interceptor/src/main/kotlin/okhttp3/logging/LoggingEventListener.kt">LoggingEventListener</a>。</p>
+<p><code>AsyncTimeout</code>用于监听Call是否超时，它是一个链表。当<code>timeout.enter()</code>执行的时候<code>AsyncTimeout</code>便从<code>Watchdog</code>线程来对比OkHttpClient中设置的时间，如果超时就会调用<code>timedOut()</code>。大致如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="class"><span class="keyword">class</span> <span class="title">AsyncTimeout</span> : <span class="type">Timeout</span></span>() &#123;*/</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">var</span> next: AsyncTimeout? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">var</span> timeoutAt = <span class="number">0L</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">enter</span><span class="params">()</span></span> &#123;</span><br><span class="line">    ...</span><br><span class="line">    scheduleTimeout(<span class="keyword">this</span>, timeoutNanos, hasDeadline)</span><br><span class="line">  &#125;</span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> head: AsyncTimeout? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">scheduleTimeout</span><span class="params">(node: <span class="type">AsyncTimeout</span>, timeoutNanos: <span class="type">Long</span>, hasDeadline: <span class="type">Boolean</span>)</span></span> &#123;</span><br><span class="line">      synchronized(AsyncTimeout::<span class="keyword">class</span>.java) &#123;</span><br><span class="line">        <span class="comment">// Start the watchdog thread and create the head node when the first timeout is scheduled.</span></span><br><span class="line">        <span class="keyword">if</span> (head == <span class="literal">null</span>) &#123;</span><br><span class="line">          head = AsyncTimeout()</span><br><span class="line">          <span class="comment">// 启动watch dog</span></span><br><span class="line">          Watchdog().start()</span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">  <span class="comment">// Watchdog 线程</span></span><br><span class="line">  <span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Watchdog</span> <span class="keyword">internal</span> <span class="keyword">constructor</span></span>() : Thread(<span class="string">&quot;Okio Watchdog&quot;</span>) &#123;</span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">      isDaemon = <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">run</span><span class="params">()</span></span> &#123;</span><br><span class="line">      <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">var</span> timedOut: AsyncTimeout? = <span class="literal">null</span></span><br><span class="line">          synchronized(AsyncTimeout::<span class="keyword">class</span>.java) &#123;</span><br><span class="line">            timedOut = awaitTimeout()</span><br><span class="line">            <span class="keyword">if</span> (timedOut === head) &#123;</span><br><span class="line">              head = <span class="literal">null</span></span><br><span class="line">              <span class="keyword">return</span></span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">          <span class="comment">// 超时了</span></span><br><span class="line">          timedOut?.timedOut()</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ignored: InterruptedException) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  ...                     </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>现在我们回到<code>RealCall</code>，继续看看<code>client.dispatcher.executed(this)</code>的调用：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Dispatcher</span> <span class="keyword">constructor</span></span>() &#123;</span><br><span class="line">  <span class="comment">// 同步运行的Call数组队列</span></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> runningSyncCalls = ArrayDeque&lt;RealCall&gt;()</span><br><span class="line">  </span><br><span class="line">  <span class="meta">@Synchronized</span> <span class="keyword">internal</span> <span class="function"><span class="keyword">fun</span> <span class="title">executed</span><span class="params">(call: <span class="type">RealCall</span>)</span></span> &#123;</span><br><span class="line">      <span class="comment">// 将Call插入到队列末尾</span></span><br><span class="line">    runningSyncCalls.add(call)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来就调用<code>getResponseWithInterceptorChain()</code>去返回结果了，最后调用<code>client.dispatcher.finished(this)</code>从<code>Dispatchs.runningSyncCalls</code>中移除当前的Call。</p>
+<p><strong>小结一下</strong></p>
+<p>OkHttp发送请求的流程为：</p>
+<ol>
+<li>创建Request请求信息</li>
+<li>OkHttpClient执行<code>newCall()</code>的时候使用Request对象来创建RealCall</li>
+<li>RealCall执行同步请求<code>execute()</code>并返回Response：<ol>
+<li>使用transmitter来记录超时信息</li>
+<li>使用transmitter发送Call开始事件</li>
+<li>将当前Call添加到Dispatcher中当前运行的Call队列(<code>runningAsyncCalls</code>)末尾</li>
+<li>调用<code>getResponseWithInterceptorChain()</code>获取结果并返回(当然其方法内部也会调用Transmitter的相关方法)</li>
+<li>从Dispatchers中的运行Call队列移除当前Call。</li>
+</ol>
+</li>
+</ol>
+<h3 id="5-getResponseWithInterceptorChain"><a href="#5-getResponseWithInterceptorChain" class="headerlink" title="5. getResponseWithInterceptorChain()"></a>5. getResponseWithInterceptorChain()</h3><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Throws(IOException::class)</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">getResponseWithInterceptorChain</span><span class="params">()</span></span>: Response &#123;</span><br><span class="line">  <span class="comment">// Build a full stack of interceptors.</span></span><br><span class="line">  <span class="keyword">val</span> interceptors = mutableListOf&lt;Interceptor&gt;()</span><br><span class="line">  interceptors += client.interceptors <span class="comment">// 用户传入的拦截器</span></span><br><span class="line">  interceptors += RetryAndFollowUpInterceptor(client) </span><br><span class="line">  interceptors += BridgeInterceptor(client.cookieJar)  </span><br><span class="line">  interceptors += CacheInterceptor(client.cache)</span><br><span class="line">  interceptors += ConnectInterceptor</span><br><span class="line">  <span class="keyword">if</span> (!forWebSocket) &#123;</span><br><span class="line">    <span class="comment">// 如果不是WebSocket链接</span></span><br><span class="line">    <span class="comment">// 将添加用户传入的网络拦截器</span></span><br><span class="line">    interceptors += client.networkInterceptors</span><br><span class="line">  &#125;</span><br><span class="line">  interceptors += CallServerInterceptor(forWebSocket)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">val</span> chain = RealInterceptorChain(interceptors, transmitter, <span class="literal">null</span>, <span class="number">0</span>, originalRequest, <span class="keyword">this</span>,</span><br><span class="line">      client.connectTimeoutMillis, client.readTimeoutMillis, client.writeTimeoutMillis)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">var</span> calledNoMoreExchanges = <span class="literal">false</span></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">val</span> response = chain.proceed(originalRequest)</span><br><span class="line">    <span class="keyword">if</span> (transmitter.isCanceled) &#123;</span><br><span class="line">      <span class="comment">// 关闭Response.body.source</span></span><br><span class="line">      response.closeQuietly()</span><br><span class="line">      <span class="keyword">throw</span> IOException(<span class="string">&quot;Canceled&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> response</span><br><span class="line">  &#125; <span class="keyword">catch</span> (e: IOException) &#123;</span><br><span class="line">    calledNoMoreExchanges = <span class="literal">true</span></span><br><span class="line">    <span class="comment">// 释放链接</span></span><br><span class="line">    <span class="keyword">throw</span> transmitter.noMoreExchanges(e) <span class="keyword">as</span> Throwable</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!calledNoMoreExchanges) &#123;</span><br><span class="line">      transmitter.noMoreExchanges(<span class="literal">null</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>将用户传入的一些拦截器和OkHttp自带的拦截器加入到<code>interceptors</code>列表中，然后创建一个拦截器链<code>RealInterceptorChain</code>，并调用其<code>proceed()</code>开始处理网络请求。</p>
+<p>下面来看看<code>RealInterceptorChain</code>是如何处理网络请求的：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RealInterceptorChain</span></span>(</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> interceptors: List&lt;Interceptor&gt;,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> transmitter: Transmitter,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> exchange: Exchange?,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> index: <span class="built_in">Int</span>,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> request: Request,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> call: Call,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> connectTimeout: <span class="built_in">Int</span>,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> readTimeout: <span class="built_in">Int</span>,</span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">val</span> writeTimeout: <span class="built_in">Int</span></span><br><span class="line">) : Interceptor.Chain &#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">private</span> <span class="keyword">var</span> calls: <span class="built_in">Int</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Throws(IOException::class)</span></span><br><span class="line">  <span class="function"><span class="keyword">fun</span> <span class="title">proceed</span><span class="params">(request: <span class="type">Request</span>, transmitter: <span class="type">Transmitter</span>, exchange: <span class="type">Exchange</span>?)</span></span>: Response &#123;</span><br><span class="line">    <span class="keyword">if</span> (index &gt;= interceptors.size) <span class="keyword">throw</span> AssertionError()</span><br><span class="line">    calls++</span><br><span class="line">    ...</span><br><span class="line">       <span class="comment">// 在index为n的时候创建一个index为n+1的拦截器链</span></span><br><span class="line">    <span class="keyword">val</span> next = RealInterceptorChain(interceptors, transmitter, exchange,</span><br><span class="line">        index + <span class="number">1</span>, request, call, connectTimeout, readTimeout, writeTimeout)</span><br><span class="line">    <span class="keyword">val</span> interceptor = interceptors[index]</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Suppress(<span class="meta-string">&quot;USELESS_ELVIS&quot;</span>)</span></span><br><span class="line">    <span class="keyword">val</span> response = interceptor.intercept(next) ?: <span class="keyword">throw</span> NullPointerException(</span><br><span class="line">        <span class="string">&quot;interceptor <span class="variable">$interceptor</span> returned null&quot;</span>)</span><br><span class="line">      </span><br><span class="line">    check(exchange == <span class="literal">null</span> || index + <span class="number">1</span> &gt;= interceptors.size || next.calls == <span class="number">1</span>) &#123;</span><br><span class="line">      <span class="string">&quot;network interceptor <span class="variable">$interceptor</span> must call proceed() exactly once&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    check(response.body != <span class="literal">null</span>) &#123; <span class="string">&quot;interceptor <span class="variable">$interceptor</span> returned a response with no body&quot;</span> &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> response</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的逻辑相当于：</p>
+<ol>
+<li><p>在<code>getResponseWithInterceptorChain()</code>创建了一个<code>index</code>为0的<code>RealInterceptorChain</code>，接着就调用了其<code>proceed()</code></p>
+</li>
+<li><p>在<code>RealInterceptorChain.proceed()</code>中，当index为n的时候创建一个index为n+1的拦截器链</p>
+</li>
+<li><p>执行<code>interceptor.intercept(next)</code>的时候会调用<code>chain.proceed()</code>，相当于回到了<code>RealInterceptorChain.proceed()</code>调用。(<code>CallServerInterceptor</code>是最后添加的，而且里面并没有执行<code>chain.proceed()</code>，它是直接与服务器建立连接。)</p>
+<p>可以看到我们自定义token拦截器的时候也会执行<code>chain.proceed()</code></p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RequestInterceptor</span> : <span class="type">Interceptor &#123;</span></span></span><br><span class="line">    <span class="meta">@Throws(IOException::class)</span></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">intercept</span><span class="params">(chain: <span class="type">Interceptor</span>.<span class="type">Chain</span>)</span></span>: Response &#123;</span><br><span class="line">        <span class="keyword">val</span> r = chain.request().newBuilder()</span><br><span class="line">        <span class="keyword">if</span> (token) &#123;</span><br><span class="line">            r.addHeader(<span class="string">&quot;Authorization&quot;</span>, <span class="string">&quot;Bearer <span class="variable">$token</span>&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> chain.proceed(r.build())</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+</li>
+</ol>
+<p>下图为OkHttp工作的大致流程，来自<a target="_blank" rel="noopener" href="https://blog.piasy.com/2016/07/11/Understand-OkHttp/index.html">拆轮子系列：拆 OkHttp</a>：</p>
+<img src="/2019/08/15/OkHttp%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/okhttp_full_process.png" class="" title="okhttp_full_process">
+
+
+
+<p>接下来我们看看这些拦截器的一些实现</p>
+<h3 id="6-RetryAndFollowUpInterceptor"><a href="#6-RetryAndFollowUpInterceptor" class="headerlink" title="6. RetryAndFollowUpInterceptor"></a>6. RetryAndFollowUpInterceptor</h3><p>重试、重定向拦截器。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RetryAndFollowUpInterceptor</span></span>(<span class="keyword">private</span> <span class="keyword">val</span> client: OkHttpClient) : Interceptor &#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Throws(IOException::class)</span></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">intercept</span><span class="params">(chain: <span class="type">Interceptor</span>.<span class="type">Chain</span>)</span></span>: Response &#123;</span><br><span class="line">    <span class="keyword">var</span> request = chain.request()</span><br><span class="line">    <span class="keyword">val</span> realChain = chain <span class="keyword">as</span> RealInterceptorChain</span><br><span class="line">    <span class="keyword">val</span> transmitter = realChain.transmitter()</span><br><span class="line">    <span class="keyword">var</span> followUpCount = <span class="number">0</span></span><br><span class="line">    <span class="keyword">var</span> priorResponse: Response? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">      transmitter.prepareToConnect(request)</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (transmitter.isCanceled) &#123;</span><br><span class="line">        <span class="keyword">throw</span> IOException(<span class="string">&quot;Canceled&quot;</span>)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">var</span> response: Response</span><br><span class="line">      <span class="keyword">var</span> success = <span class="literal">false</span></span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 进行正常请求</span></span><br><span class="line">        response = realChain.proceed(request, transmitter, <span class="literal">null</span>)</span><br><span class="line">        success = <span class="literal">true</span></span><br><span class="line">      &#125; <span class="keyword">catch</span> (e: RouteException) &#123;</span><br><span class="line">        <span class="comment">// The attempt to connect via a route failed. The request will not have been sent.</span></span><br><span class="line">        <span class="keyword">if</span> (!recover(e.lastConnectException, transmitter, <span class="literal">false</span>, request)) &#123;</span><br><span class="line">          <span class="keyword">throw</span> e.firstConnectException</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">      &#125; <span class="keyword">catch</span> (e: IOException) &#123;</span><br><span class="line">        <span class="comment">// An attempt to communicate with a server failed. The request may have been sent.</span></span><br><span class="line">        <span class="keyword">val</span> requestSendStarted = e !<span class="keyword">is</span> ConnectionShutdownException</span><br><span class="line">        <span class="keyword">if</span> (!recover(e, transmitter, requestSendStarted, request)) <span class="keyword">throw</span> e</span><br><span class="line">        <span class="keyword">continue</span></span><br><span class="line">      &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// The network call threw an exception. Release any resources.</span></span><br><span class="line">        <span class="keyword">if</span> (!success) &#123;</span><br><span class="line">          transmitter.exchangeDoneDueToException()</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Attach the prior response if it exists. Such responses never have a body.</span></span><br><span class="line">      <span class="keyword">if</span> (priorResponse != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 使用priorResponse新建Response并将Body设为空</span></span><br><span class="line">        response = response.newBuilder()</span><br><span class="line">            .priorResponse(priorResponse.newBuilder()</span><br><span class="line">                .body(<span class="literal">null</span>)</span><br><span class="line">                .build())</span><br><span class="line">            .build()</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">val</span> exchange = response.exchange</span><br><span class="line">      <span class="keyword">val</span> route = exchange?.connection()?.route()</span><br><span class="line">      <span class="comment">// 重试</span></span><br><span class="line">      <span class="keyword">val</span> followUp = followUpRequest(response, route)</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (followUp == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (exchange != <span class="literal">null</span> &amp;&amp; exchange.isDuplex) &#123;</span><br><span class="line">          transmitter.timeoutEarlyExit()</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> response</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">val</span> followUpBody = followUp.body</span><br><span class="line">      <span class="keyword">if</span> (followUpBody != <span class="literal">null</span> &amp;&amp; followUpBody.isOneShot()) &#123;</span><br><span class="line">        <span class="keyword">return</span> response</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      response.body?.closeQuietly()</span><br><span class="line">      <span class="keyword">if</span> (transmitter.hasExchange()) &#123;</span><br><span class="line">        exchange?.detachWithViolence()</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 重试次数</span></span><br><span class="line">      <span class="keyword">if</span> (++followUpCount &gt; MAX_FOLLOW_UPS) &#123;</span><br><span class="line">        <span class="keyword">throw</span> ProtocolException(<span class="string">&quot;Too many follow-up requests: <span class="variable">$followUpCount</span>&quot;</span>)</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      request = followUp</span><br><span class="line">      <span class="comment">// 将重试Response添加priorResponse</span></span><br><span class="line">      priorResponse = response</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先正常进行请求，如果请求成功则在<code>finally</code>中释放资源，然后返回Response。如果遇到不可修复的异常则抛出异常并跳出循环，否则使用<code>followUpRequest()</code>进行重试</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2019/08/15/OkHttp%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="OkHttp源码解析" target="_blank" rel="external">https://blog.xusheng.online/2019/08/15/OkHttp%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2019/09/17/Jetpack%E4%B9%8BLifecycle/" title="Jetpack之Lifecycle"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2019/07/04/%E9%80%9A%E8%BF%87Git%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0Android%E7%BC%96%E8%AF%91%E7%89%88%E6%9C%AC%E5%8F%B7/" title="通过Git自动更新Android编译版本号"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

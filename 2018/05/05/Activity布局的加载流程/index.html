@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Activity布局的加载流程 | X档案</title>
+  <meta name="description" content="在Activity中，加载布局只需要在onCreate()设置setContentView()就可以将开发者定义的视图文件加载。这其中是如何实现的呢？我们将从setContentView开始一步一步去了解Activity的视图结构以及布局加载过程。 1. 加载布局1.1 setContentView当我们开始编写一个Activity时，会调用setContentView()来加载自定义的布局xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Activity布局的加载流程">
+<meta property="og:url" content="https://blog.xusheng.online/2018/05/05/Activity%E5%B8%83%E5%B1%80%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="在Activity中，加载布局只需要在onCreate()设置setContentView()就可以将开发者定义的视图文件加载。这其中是如何实现的呢？我们将从setContentView开始一步一步去了解Activity的视图结构以及布局加载过程。 1. 加载布局1.1 setContentView当我们开始编写一个Activity时，会调用setContentView()来加载自定义的布局xml">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.xusheng.online/2018/05/05/Activity%E5%B8%83%E5%B1%80%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/activity_layout.png">
+<meta property="article:published_time" content="2018-05-05T14:03:32.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.720Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="Framework">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.xusheng.online/2018/05/05/Activity%E5%B8%83%E5%B1%80%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/activity_layout.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2018/05/05/Activity%E5%B8%83%E5%B1%80%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Activity布局的加载流程" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Activity布局的加载流程
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2018/05/05/Activity%E5%B8%83%E5%B1%80%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/" class="article-date">
+	  <time datetime="2018-05-05T14:03:32.000Z" itemprop="datePublished">2018-05-05</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Android/">Android</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Framework/" rel="tag">Framework</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2018/05/05/Activity%E5%B8%83%E5%B1%80%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>在Activity中，加载布局只需要在<code>onCreate()</code>设置<code>setContentView()</code>就可以将开发者定义的视图文件加载。这其中是如何实现的呢？我们将从setContentView开始一步一步去了解Activity的视图结构以及布局加载过程。</p>
+<h3 id="1-加载布局"><a href="#1-加载布局" class="headerlink" title="1. 加载布局"></a>1. 加载布局</h3><h4 id="1-1-setContentView"><a href="#1-1-setContentView" class="headerlink" title="1.1 setContentView"></a>1.1 setContentView</h4><p>当我们开始编写一个Activity时，会调用<code>setContentView()</code>来加载自定义的布局xml文件，通常如下</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">    setContentView(R.layout.activity_xxx)</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>直接进入Activity中，可以发现<code>setContentView()</code>有多个重载方法。但是方法内部的实现都很简单，类似如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContentView</span><span class="params">(<span class="meta">@LayoutRes</span> <span class="keyword">int</span> layoutResID)</span> </span>&#123;</span><br><span class="line">    getWindow().setContentView(layoutResID);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>getWindow()</code>返回了一个<code>PhoneWindow</code>对象。<code>PhoneWindow</code>对象在Activity中的<code>attach()</code>时创建。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Window <span class="title">getWindow</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> mWindow;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">attach</span><span class="params">(Context context, ActivityThread aThread,</span></span></span><br><span class="line"><span class="function"><span class="params">        Instrumentation instr, IBinder token, <span class="keyword">int</span> ident,</span></span></span><br><span class="line"><span class="function"><span class="params">        Application application, Intent intent, ActivityInfo info,</span></span></span><br><span class="line"><span class="function"><span class="params">        CharSequence title, Activity parent, String id,</span></span></span><br><span class="line"><span class="function"><span class="params">        NonConfigurationInstances lastNonConfigurationInstances,</span></span></span><br><span class="line"><span class="function"><span class="params">        Configuration config, String referrer, IVoiceInteractor voiceInteractor,</span></span></span><br><span class="line"><span class="function"><span class="params">        Window window, ActivityConfigCallback activityConfigCallback, IBinder assistToken)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    mWindow = <span class="keyword">new</span> PhoneWindow(<span class="keyword">this</span>, window, activityConfigCallback);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-2-PhoneWindow"><a href="#1-2-PhoneWindow" class="headerlink" title="1.2 PhoneWindow"></a>1.2 PhoneWindow</h4><p><code>PhoneWindow.setContentView()</code>方法的核心是，生成<code>DecorView</code>和<code>mContentParent</code>对象，之后将布局文件添加到<code>mContentParent</code>上面去：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContentView</span><span class="params">(<span class="keyword">int</span> layoutResID)</span> </span>&#123;</span><br><span class="line">...</span><br><span class="line">        installDecor(); <span class="comment">// 创建DecorView和ContentParent</span></span><br><span class="line">    ...</span><br><span class="line">        mLayoutInflater.inflate(layoutResID, mContentParent); <span class="comment">// 将布局填充到ContentParent</span></span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来分析<code>installDecor()</code>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">installDecor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">if</span> (mDecor == <span class="keyword">null</span>) &#123;</span><br><span class="line">        mDecor = generateDecor(-<span class="number">1</span>); <span class="comment">// 生成DecorView</span></span><br><span class="line">        ...</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        mDecor.setWindow(<span class="keyword">this</span>); <span class="comment">// 关联DecorView和Window</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (mContentParent == <span class="keyword">null</span>) &#123;</span><br><span class="line">        mContentParent = generateLayout(mDecor); <span class="comment">// 生成ContentParent</span></span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到这里生成了DecorView和ContentParent对象，接下来看看它们时如何生成的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> DecorView <span class="title">generateDecor</span><span class="params">(<span class="keyword">int</span> featureId)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> DecorView(context, featureId, <span class="keyword">this</span>, getAttributes());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> ViewGroup <span class="title">generateLayout</span><span class="params">(DecorView decor)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Apply data from current theme.</span></span><br><span class="line">...</span><br><span class="line">    <span class="keyword">int</span> layoutResource;</span><br><span class="line">    <span class="keyword">int</span> features = getLocalFeatures();</span><br><span class="line">    ...</span><br><span class="line">      <span class="comment">// 根据features设置layoutResource</span></span><br><span class="line">    ...</span><br><span class="line">    mDecor.startChanging();</span><br><span class="line">    mDecor.onResourcesLoaded(mLayoutInflater, layoutResource); <span class="comment">// 加载布局资源文件</span></span><br><span class="line">    ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT);</span><br><span class="line">    <span class="keyword">if</span> (contentParent == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;Window couldn&#x27;t find content container view&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">...</span><br><span class="line">    mDecor.finishChanging();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> contentParent;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>generateLayout()</code> DecorView将根据features来选择不同的布局，然后通过<code>onResourcesLoaded()</code>填充。而ContentParent其实就是一个id为<code>android.R.id.content</code>的ViewGroup。<code>onResourcesLoaded()</code>的主要代码为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">onResourcesLoaded</span><span class="params">(LayoutInflater inflater, <span class="keyword">int</span> layoutResource)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">final</span> View root = inflater.inflate(layoutResource, <span class="keyword">null</span>);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>mContentParent</code>生成后，<code>PhoneWindow.setContentView()</code>直接通过<code>mLayoutInflater.inflate(layoutResID, mContentParent);</code>将布局加载到其中。</p>
+<h4 id="1-2-视图结构"><a href="#1-2-视图结构" class="headerlink" title="1.2 视图结构"></a>1.2 视图结构</h4><p>由上面的代码分析，可以发现一个Activity的视图结构如下：</p>
+<img src="/2018/05/05/Activity%E5%B8%83%E5%B1%80%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/activity_layout.png" class="" title="activity_layout">
+
+<p>其中各个的职能都不同：</p>
+<ul>
+<li><strong>Activity</strong>：Activity并不控制视图，它只是控制生命周期和处理事件。</li>
+<li><strong>Window</strong>：Window是视图的承载器，内部持有一个 DecorView。Window是一个抽象类，实际在Activity中持有的是其子类PhoneWindow。PhoneWindow中有个内部类DecorView，通过创建DecorView来加载Activity中设置的布局。</li>
+<li><strong>DecorView</strong>：DecorView是FrameLayout的子类，它可以被认为是Android视图树的根节点视图。DecorView通过不同的feature来加载不同的布局，布局中有一个id为<code>android.R.id.content</code>的ViewGroup用来装载Activity中加载的自定义布局。</li>
+</ul>
+<h3 id="2-显示布局"><a href="#2-显示布局" class="headerlink" title="2. 显示布局"></a>2. 显示布局</h3><p>当Activity的布局加载完毕之后是如何显示在屏幕中的？当Activity创建完成之后<code>ActivityThread</code>调用<code>handleResumeActivity</code>将DecorView添加到Window中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line">final void handleResumeActivity(IBinder token,</span><br><span class="line">    boolean clearHide, boolean isForward, boolean reallyResume) &#123;</span><br><span class="line">    &#x2F;&#x2F;Part01</span><br><span class="line">    &#x2F;&#x2F;调用activity.onResume，把activity数据记录更新到ActivityClientRecord</span><br><span class="line">    ActivityClientRecord r &#x3D; performResumeActivity(token, clearHide);</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;Part02</span><br><span class="line">    if (r !&#x3D; null) &#123;</span><br><span class="line">        final Activity a &#x3D; r.activity;</span><br><span class="line">        &#x2F;&#x2F;activity.mStartedActivity是用来标记启动Activity，有没有带返回值，一般我们startActivity(intent)是否默认是startActivityForResult(intent,-1)，默认值是-1，所以这里mStartedActivity &#x3D; false</span><br><span class="line">        boolean willBeVisible &#x3D; !a.mStartedActivity;</span><br><span class="line">        ...</span><br><span class="line">        &#x2F;&#x2F;mFinished标记Activity有没有结束，而r.window一开始activity并未赋值给ActivityClientRecord，所以这里为null</span><br><span class="line">        if (r.window &#x3D;&#x3D; null &amp;&amp; !a.mFinished &amp;&amp; willBeVisible) &#123;</span><br><span class="line">            r.window &#x3D; r.activity.getWindow(); &#x2F;&#x2F;赋值</span><br><span class="line">            View decor &#x3D; r.window.getDecorView();</span><br><span class="line">            decor.setVisibility(View.INVISIBLE);&#x2F;&#x2F;默认设置DecorView不可见</span><br><span class="line">            ViewManager wm &#x3D; a.getWindowManager();</span><br><span class="line">            WindowManager.LayoutParams l &#x3D; r.window.getAttributes();</span><br><span class="line">            a.mDecor &#x3D; decor;</span><br><span class="line">            l.type &#x3D; WindowManager.LayoutParams.TYPE_BASE_APPLICATION;</span><br><span class="line">            l.softInputMode |&#x3D; forwardBit;</span><br><span class="line">            if (a.mVisibleFromClient) &#123;</span><br><span class="line">                a.mWindowAdded &#x3D; true;</span><br><span class="line">                &#x2F;&#x2F;把当前的DecorView与WindowManager绑定一起</span><br><span class="line">                wm.addView(decor, l);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        ...</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">        if (!r.activity.mFinished &amp;&amp; willBeVisible</span><br><span class="line">                &amp;&amp; r.activity.mDecor !&#x3D; null &amp;&amp; !r.hideForNow) &#123;</span><br><span class="line">                </span><br><span class="line">         &#x2F;&#x2F;Part03</span><br><span class="line">         &#x2F;&#x2F;标记当前的Activity有没有设置新的配置参数，比如现在手机是横屏的，而之后你转成竖屏，那么这里的newCofig就会被赋值，表示参数改变</span><br><span class="line">            if (r.newConfig !&#x3D; null) &#123;</span><br><span class="line">                r.tmpConfig.setTo(r.newConfig);</span><br><span class="line">                if (r.overrideConfig !&#x3D; null) &#123;</span><br><span class="line">                    r.tmpConfig.updateFrom(r.overrideConfig);</span><br><span class="line">                &#125;</span><br><span class="line">                &#x2F;&#x2F;然后调用这个方法回调，表示屏幕参数发生了改变</span><br><span class="line">                performConfigurationChanged(r.activity, r.tmpConfig);</span><br><span class="line">            ...</span><br><span class="line">            WindowManager.LayoutParams l &#x3D; r.window.getAttributes();</span><br><span class="line">            ...&#x2F;&#x2F;改变之后update更新当前窗口的DecorView</span><br><span class="line">                if (r.activity.mVisibleFromClient) &#123;</span><br><span class="line">                    ViewManager wm &#x3D; a.getWindowManager();</span><br><span class="line">                    View decor &#x3D; r.window.getDecorView();</span><br><span class="line">                    wm.updateViewLayout(decor, l);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            &#x2F;&#x2F;参数没改变</span><br><span class="line">            r.activity.mVisibleFromServer &#x3D; true;</span><br><span class="line">            mNumVisibleActivities++;</span><br><span class="line">            </span><br><span class="line">            &#x2F;&#x2F;Part04</span><br><span class="line">            if (r.activity.mVisibleFromClient) &#123;</span><br><span class="line">            &#x2F;&#x2F;由于前面设置了INVASIBLE，所以现在要把DecorView显示出来了</span><br><span class="line">                r.activity.makeVisible();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">       &#x2F;&#x2F;通知ActivityManagerService，Activity完成Resumed</span><br><span class="line">         ActivityManagerNative.getDefault().activityResumed(token);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-总结"><a href="#3-总结" class="headerlink" title="3. 总结"></a>3. 总结</h3><ol>
+<li>Activity在<code>attach</code>中创建一个PhoneWindow</li>
+<li>setContentView`的时候创建DecorView的对象，并将此对象作为窗口的根视图</li>
+<li>根据主题及其样式的不同获取对应的布局文件，解析并加载至mDecorView</li>
+<li>通过mDecorView获取id为content的帧布局contentParent，并通过LayoutInflater将Activity的布局文件解析并加载至contentParent</li>
+<li>ActivityThread<code>在</code>handleResumeActivity`将DecorView添加到Window中</li>
+</ol>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2018/05/05/Activity%E5%B8%83%E5%B1%80%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/" title="Activity布局的加载流程" target="_blank" rel="external">https://blog.xusheng.online/2018/05/05/Activity%E5%B8%83%E5%B1%80%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2018/06/08/LayoutInflater%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/" title="LayoutInflater布局加载流程"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2018/04/18/Activity/" title="Activity"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

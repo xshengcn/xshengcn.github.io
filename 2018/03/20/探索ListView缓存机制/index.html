@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>探索ListView缓存机制 | X档案</title>
+  <meta name="description" content="ListView是一个显示竖直并且可以滚动的View的集合。其中每个View都位于列表中的上一个View的下方。 1. ListView的使用1.1 定义ListView适配器123456789101112131415161718192021222324252627282930313233343536373839class MyAdapter(context: Context) : BaseAda">
+<meta property="og:type" content="article">
+<meta property="og:title" content="探索ListView缓存机制">
+<meta property="og:url" content="https://blog.xusheng.online/2018/03/20/%E6%8E%A2%E7%B4%A2ListView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="ListView是一个显示竖直并且可以滚动的View的集合。其中每个View都位于列表中的上一个View的下方。 1. ListView的使用1.1 定义ListView适配器123456789101112131415161718192021222324252627282930313233343536373839class MyAdapter(context: Context) : BaseAda">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.xusheng.online/2018/03/20/%E6%8E%A2%E7%B4%A2ListView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/image-20200902234151499.png">
+<meta property="article:published_time" content="2018-03-20T12:02:47.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.735Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="ListView">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.xusheng.online/2018/03/20/%E6%8E%A2%E7%B4%A2ListView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/image-20200902234151499.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2018/03/20/%E6%8E%A2%E7%B4%A2ListView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-探索ListView缓存机制" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      探索ListView缓存机制
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2018/03/20/%E6%8E%A2%E7%B4%A2ListView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/" class="article-date">
+	  <time datetime="2018-03-20T12:02:47.000Z" itemprop="datePublished">2018-03-20</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Framework/">Framework</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/ListView/" rel="tag">ListView</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2018/03/20/%E6%8E%A2%E7%B4%A2ListView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p><code>ListView</code>是一个显示竖直并且可以滚动的View的集合。其中每个View都位于列表中的上一个View的下方。</p>
+<h3 id="1-ListView的使用"><a href="#1-ListView的使用" class="headerlink" title="1. ListView的使用"></a>1. ListView的使用</h3><h4 id="1-1-定义ListView适配器"><a href="#1-1-定义ListView适配器" class="headerlink" title="1.1 定义ListView适配器"></a>1.1 定义ListView适配器</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">class MyAdapter(context: Context) : BaseAdapter() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> val inflater = LayoutInflater.from(context)</span><br><span class="line">    <span class="keyword">var</span> items: List&lt;Item&gt; = emptyList()</span><br><span class="line">          <span class="meta">@UIThread</span></span><br><span class="line">        set(value) &#123;</span><br><span class="line">            field = value</span><br><span class="line">            notifyDataSetChanged()</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">override fun <span class="title">getView</span><span class="params">(position: Int, convertView: View?, parent: ViewGroup?)</span>: View </span>&#123;</span><br><span class="line">        val holder: ViewHolder</span><br><span class="line">        val view: View</span><br><span class="line">        <span class="keyword">if</span> (convertView == <span class="keyword">null</span>) &#123;</span><br><span class="line">            view = inflater.inflate(R.layout.item_view, parent, <span class="keyword">false</span>)</span><br><span class="line">            holder = ViewHolder(view)</span><br><span class="line">            view.tag = holder</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            view = convertView</span><br><span class="line">            holder = view.tag as ViewHolder</span><br><span class="line">        &#125;</span><br><span class="line">        val item = getItem(position)</span><br><span class="line">        holder.nameTv.text = item.name</span><br><span class="line">        holder.ageTv.text = <span class="string">&quot;$&#123;item.age&#125;&quot;</span></span><br><span class="line">        <span class="keyword">return</span> view</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">override fun <span class="title">getItem</span><span class="params">(position: Int)</span>: Item </span>= items[position]</span><br><span class="line">    <span class="function">override fun <span class="title">getItemId</span><span class="params">(position: Int)</span>: Long </span>= position.toLong()</span><br><span class="line">    <span class="function">override fun <span class="title">getCount</span><span class="params">()</span>: Int </span>= items.size</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 创建ViewHolder避免重复查找</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    class ViewHolder(itemView: View) &#123;</span><br><span class="line">        val nameTv = itemView.findViewById&lt;TextView&gt;(R.layout.name_tv)</span><br><span class="line">        val ageTv = itemView.findViewById&lt;TextView&gt;(R.layout.age_tv)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>判断convertView是否为空，如果为空表示View没有被复用，需要我们自己去加载View。</p>
+<p>这里定义一个<code>ViewHolder</code>用来避免重复查找，因为ViewGroup每次根据id查找View的时候都会遍历其中所有的View，者会导致性能的下降。</p>
+<p>定义一个<code>items</code>数据源，当数据发送变动时通知ListView刷新列表。</p>
+<h4 id="2-将适配器绑定到ListView"><a href="#2-将适配器绑定到ListView" class="headerlink" title="2. 将适配器绑定到ListView"></a>2. 将适配器绑定到ListView</h4><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> adapter = MyAdapter(context)</span><br><span class="line"><span class="keyword">val</span> listView: ListView = view.findViewById(R.id.list_view)</span><br><span class="line">listView.adapter = adapter</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> items = mockItems()</span><br><span class="line">adapter.items = items</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="2-缓存原理"><a href="#2-缓存原理" class="headerlink" title="2. 缓存原理"></a>2. 缓存原理</h3><p>ListView的缓存主要是通过RecycleBin来实现的。RecycleBin的代码只有300行左右，它是AbsListView中的一个内部类。所以所有继承自AbsListView的子类，也就是ListView和GridView，都是使用这个机制。</p>
+<p>这里先介绍RecycleBin的重要变量和方法：</p>
+<ul>
+<li><p><code>private View[] mActiveViews</code>：用来缓存屏幕上可见的View</p>
+</li>
+<li><p><code>private int mViewTypeCount</code>：ListView中包含的不同类型布局的总数</p>
+</li>
+<li><p><code>ArrayList&lt;View&gt;[] mScrapViews</code>：ListView中所有的缓存View。这是一个ArrayList数组，数组中的每一项ArrayList都对应着一种布局类型的缓存。</p>
+</li>
+<li><p><code>void fillActiveViews(int childCount, int firstActivePosition)</code>：将ListView中的指定元素存储到mActiveViews数组当中。childCount表示要存储的View的数量，firstActivePosition表示ListView中第一个可见元素的position值。</p>
+</li>
+<li><p><code> View getActiveView(int position)</code>：获取与指定位置相对应的View。 如果找到该View，则将从mActiveViews中移除。</p>
+</li>
+<li><p><code>void addScrapView(View scrap, int position)</code>：于将一个废弃的View进行缓存。scrap表示需要被废弃的View，position是View在其父级中的位置。如果childView的布局类型只有一项，就直接缓存到mCurrentScrap。如果多种布局，则从mScrapViews找到相对应的废弃缓存ArrayList并缓存view。</p>
+</li>
+<li><p><code>View getScrapView(int position)</code>：从废弃缓存中取出一个View。如果childView的布局类型只有一项，就直接从mCurrentScrap中取。如果多种布局，则从mScrapViews找到相对应的缓存ArrayList再取出view。</p>
+</li>
+<li><p><code>public void setViewTypeCount(int viewTypeCount)</code>：设置ListView中布局类型的数量，为每种类型布局项都启用缓存。而这个数量就是<code>mScrapViews</code>的数组的长度。</p>
+</li>
+</ul>
+<p>先简单的介绍一下RecycleBin的几个重要方法，然后简单的说一下<strong>RecycleBin缓存机制的工作原理</strong>：</p>
+<blockquote>
+<p>每当ListView中的一个View滑出屏幕时，RecycleBin都会调用<code>addScrapView</code>进行缓存。当有View滑入屏幕时调用<code>getScrapView</code>从废弃缓存中获取。</p>
+<p>所以在<code>override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View</code>中的convertView就是RecycleBin缓存机制调用getScrapView()方法获取废弃已缓存的view。因为使用<code>LayoutInflater.inflate()</code>加载布局比较消耗资源，所以当convertView不为空时，我们就直接用convertView了，而不需要再次调用LayoutInflater的inflate()方法加载出来布局。</p>
+</blockquote>
+<h3 id="3-工作原理"><a href="#3-工作原理" class="headerlink" title="3. 工作原理"></a>3. 工作原理</h3><p>在分析ListView之前我们先看一下ListView的结构：</p>
+<img src="/2018/03/20/%E6%8E%A2%E7%B4%A2ListView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/image-20200902234151499.png" class="" title="image-20200902234151499">
+
+<p>可以看到ListView直接继承与AbsListView，然后AbsListView有继承子AdapterView()。它最终的父类还是View。而每一个View的工作流程都是分为三步，onMeasure()测量，接着onLayout()布局，最后onDraw()绘制。</p>
+<p>在ListView当中，onMeasure()并没有什么特殊的地方，因为它终归是一个View，占用的空间最多并且通常也就是整个屏幕。onDraw()在ListView当中也没有什么意义，因为ListView本身并不负责绘制，而是由ListView当中的子元素来进行绘制的。我们的重点就是在onLayout()方法上。</p>
+<h4 id="3-1-第一次onLayout"><a href="#3-1-第一次onLayout" class="headerlink" title="3.1 第一次onLayout"></a>3.1 第一次onLayout</h4><p>ListView在加载子项视图的时候，先判断是否有子元素、RecycleBin缓存机制中是否已经有缓存视图了。由于此时ListView是第一次加载，没有任何视图，RecycleBin中也没有任何的缓存记录，所以ListView就直接进行计算，绘制子view等等一系列操作。<br>ListView在加载子项视图的时候，先判断是否有子元素、RecycleBin缓存机制中是否已经有缓存视图了。由于此时ListView是第一次加载，没有任何视图，RecycleBin中也没有任何的缓存记录，所以ListView就直接进行计算，绘制子view等等一系列操作。</p>
+<h4 id="3-2-第二次onLayout"><a href="#3-2-第二次onLayout" class="headerlink" title="3.2 第二次onLayout"></a>3.2 第二次onLayout</h4><p>我们做一下实验的话就会发现，即使是一个再简单的View，在展示到界面上之前都会经历至少两次onMeasure()和两次onLayout()的过程。</p>
+<p>因为在有了第一次onLayout()的过程，ListView现在已经加载好了子项视图了。所以当ListView再次判断子元素是否为空时，现在子元素不再等于0了。所以这次会进行下面这些操作：</p>
+<ol>
+<li>ListView首先调用RecycleBin缓存机制的fillActiveViews()方法，将第一次onLayout()已经加载好的视图全部缓存到mActiveViews中，然后再detach掉第一次所有加载好的视图。这样就解决了第二次onLayout()再次加载视图的时候，出现数据重复的问题。</li>
+<li>巧妙的是，在接下来加载子项视图的时候，也是先判断RecycleBin缓存机制中的mActiveViews是否为空，但是因为刚才ListView已经把第一次加载好的子视图全部缓存到了mActiveViews中了，所以此时mActiveView并不空，接下来就只要把mActiveViews里面的视图全部attach到ListView上，这样ListView中所有子视图又全部显示出来了。</li>
+</ol>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2018/03/20/%E6%8E%A2%E7%B4%A2ListView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/" title="探索ListView缓存机制" target="_blank" rel="external">https://blog.xusheng.online/2018/03/20/%E6%8E%A2%E7%B4%A2ListView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2018/04/18/Activity/" title="Activity"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

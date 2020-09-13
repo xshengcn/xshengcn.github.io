@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Jetpack之ViewModel | X档案</title>
+  <meta name="description" content="Jetpack之ViewModel解析ViewModel类旨在以注重生命周期的方式存储和管理界面相关的数据。ViewModel类让数据可在发生屏幕旋转等配置更改后继续留存。 官网介绍：ViewModel指南 1. 简单使用1.1 创建自定义ViewModel创建自定义ViewModel有两种方式，最大的区别是ViewMode中不能引用Activity、Fragment的实例。主要原因是：为了防止内">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Jetpack之ViewModel">
+<meta property="og:url" content="https://blog.xusheng.online/2019/11/29/Jetpack%E4%B9%8BViewModel/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="Jetpack之ViewModel解析ViewModel类旨在以注重生命周期的方式存储和管理界面相关的数据。ViewModel类让数据可在发生屏幕旋转等配置更改后继续留存。 官网介绍：ViewModel指南 1. 简单使用1.1 创建自定义ViewModel创建自定义ViewModel有两种方式，最大的区别是ViewMode中不能引用Activity、Fragment的实例。主要原因是：为了防止内">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.xusheng.online/2019/11/29/Jetpack%E4%B9%8BViewModel/viewmodel-lifecycle.png">
+<meta property="article:published_time" content="2019-11-29T05:30:50.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.726Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="ViewModel">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.xusheng.online/2019/11/29/Jetpack%E4%B9%8BViewModel/viewmodel-lifecycle.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2019/11/29/Jetpack%E4%B9%8BViewModel/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Jetpack之ViewModel" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Jetpack之ViewModel
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2019/11/29/Jetpack%E4%B9%8BViewModel/" class="article-date">
+	  <time datetime="2019-11-29T05:30:50.000Z" itemprop="datePublished">2019-11-29</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Jetpack/">Jetpack</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/ViewModel/" rel="tag">ViewModel</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2019/11/29/Jetpack%E4%B9%8BViewModel/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h2 id="Jetpack之ViewModel解析"><a href="#Jetpack之ViewModel解析" class="headerlink" title="Jetpack之ViewModel解析"></a>Jetpack之ViewModel解析</h2><p><code>ViewModel</code>类旨在以注重生命周期的方式存储和管理界面相关的数据。<code>ViewModel</code>类让数据可在发生屏幕旋转等配置更改后继续留存。</p>
+<p>官网介绍：<a target="_blank" rel="noopener" href="https://developer.android.com/topic/libraries/architecture/viewmodel">ViewModel指南</a></p>
+<h3 id="1-简单使用"><a href="#1-简单使用" class="headerlink" title="1. 简单使用"></a>1. 简单使用</h3><h4 id="1-1-创建自定义ViewModel"><a href="#1-1-创建自定义ViewModel" class="headerlink" title="1.1 创建自定义ViewModel"></a>1.1 创建自定义ViewModel</h4><p>创建自定义ViewModel有两种方式，最大的区别是ViewMode中不能引用Activity、Fragment的实例。主要原因是：为了防止内存泄漏。如果在某种场景下需要用到上下文Context，在继承ViewMode的时候，可以选择继承AndroidViewModel。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MainViewModel</span> : <span class="type">ViewModel</span></span>() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> _userName = MutableLiveData&lt;String&gt;()</span><br><span class="line">    <span class="keyword">val</span> userName: LiveData&lt;String&gt; <span class="keyword">get</span>() = _userName</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">setUserName</span><span class="params">(text: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">        _userName.value = text</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="1-2-在Activity中使用"><a href="#1-2-在Activity中使用" class="headerlink" title="1.2 在Activity中使用"></a>1.2 在Activity中使用</h4><figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">    <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">    setContentView(R.layout.activity_main)</span><br><span class="line"></span><br><span class="line">      <span class="keyword">val</span> viewModel = ViewModelProvider(<span class="keyword">this</span>).<span class="keyword">get</span>(MainViewModel::<span class="keyword">class</span>.java)</span><br><span class="line">    viewModel.userName.observe(<span class="keyword">this</span>, Observer &#123;</span><br><span class="line">        nameTv.text = it</span><br><span class="line">    &#125;)</span><br><span class="line"></span><br><span class="line">    changeNameBtn.setOnClickListener &#123;</span><br><span class="line">        viewModel.setUserName(<span class="string">&quot;张三&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>通过<code>ViewModelProvider</code>获取到<code>MainViewModel</code>的实例，然后在Activity中观察<code>MainViewModel</code>中的数据变化和调用其方法。</p>
+<h4 id="1-3-ViewModel的生命周期"><a href="#1-3-ViewModel的生命周期" class="headerlink" title="1.3 ViewModel的生命周期"></a>1.3 ViewModel的生命周期</h4><p>ViewMode在Activity被finish后才会销毁，否则在Activity的生命周期范围内会一直保存在内存中，或者当依附的Fragment detached后进行销毁。 使用官网的一张图来标注Activity的生命周期与ViewMode的生命周期关联，如下图所示：</p>
+<img src="/2019/11/29/Jetpack%E4%B9%8BViewModel/viewmodel-lifecycle.png" class="" title="viewmodel-lifecycle">
+
+<h3 id="2-ViewModel原理"><a href="#2-ViewModel原理" class="headerlink" title="2. ViewModel原理"></a>2. ViewModel原理</h3><h4 id="2-1-Activity重建时对象的保存"><a href="#2-1-Activity重建时对象的保存" class="headerlink" title="2.1 Activity重建时对象的保存"></a>2.1 Activity重建时对象的保存</h4><p>在分析<code>ViewModel</code>的源码之前，我们先来看一下Activity是如何保存对象的。</p>
+<p>在Activity中除了使用<code>onSaveInstanceState()</code>来保存数据和<code>onRestoreInstanceState()</code>恢复数据之外，还有另外的接口回调：<code>onRetainNonConfigurationInstance()</code>和<code>getLastNonConfigurationInstance()</code>。当修改Activity的代码如下时，运行的结果和之前完全一致：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MainActivity</span> : <span class="type">Activity</span></span>(), LifecycleOwner &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> lifecycleRegistry = LifecycleRegistry(<span class="keyword">this</span>)</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> viewModel: MainViewModel? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">        setContentView(R.layout.activity_main)</span><br><span class="line"></span><br><span class="line">        getViewModel().userName.observe(<span class="keyword">this</span>, Observer &#123;</span><br><span class="line">            nameTv.text = it</span><br><span class="line">        &#125;)</span><br><span class="line"></span><br><span class="line">        changeNameBtn.setOnClickListener &#123;</span><br><span class="line">            getViewModel().setUserName(<span class="string">&quot;张三&quot;</span>)</span><br><span class="line">            recreate()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">getViewModel</span><span class="params">()</span></span>: MainViewModel &#123;</span><br><span class="line">        <span class="keyword">if</span> (viewModel == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> lastStore = lastNonConfigurationInstance <span class="keyword">as</span>? MainViewModel</span><br><span class="line">            <span class="keyword">if</span> (lastStore == <span class="literal">null</span>) &#123;</span><br><span class="line">                lastStore = MainViewModel()</span><br><span class="line">            &#125;</span><br><span class="line">            viewModel = lastStore</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> viewModel!!</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onRetainNonConfigurationInstance</span><span class="params">()</span></span>: Any? &#123;</span><br><span class="line">        <span class="keyword">return</span> viewModel</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getLifecycle</span><span class="params">()</span></span>: Lifecycle &#123;</span><br><span class="line">        <span class="keyword">return</span> lifecycleRegistry</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-2-创建ViewModelProvider"><a href="#2-2-创建ViewModelProvider" class="headerlink" title="2.2 创建ViewModelProvider"></a>2.2 创建ViewModelProvider</h4><p>在Activity中，我们会调用以下方法来获取到ViewModel实例：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ViewModelProvider(<span class="keyword">this</span>).<span class="keyword">get</span>(MainViewModel::<span class="keyword">class</span>.java)</span><br></pre></td></tr></table></figure>
+
+<p>在<code>ViewModelProvider</code>中有三个构造方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ViewModelProvider</span><span class="params">(<span class="meta">@NonNull</span> ViewModelStoreOwner owner)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(owner.getViewModelStore(), owner <span class="keyword">instanceof</span> HasDefaultViewModelProviderFactory</span><br><span class="line">            ? ((HasDefaultViewModelProviderFactory) owner).getDefaultViewModelProviderFactory()</span><br><span class="line">            : NewInstanceFactory.getInstance());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ViewModelProvider</span><span class="params">(<span class="meta">@NonNull</span> ViewModelStoreOwner owner, <span class="meta">@NonNull</span> Factory factory)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(owner.getViewModelStore(), factory);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">   </span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ViewModelProvider</span><span class="params">(<span class="meta">@NonNull</span> ViewModelStore store, <span class="meta">@NonNull</span> Factory factory)</span> </span>&#123;</span><br><span class="line">    mFactory = factory;</span><br><span class="line">    mViewModelStore = store;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在Activity的代码中并没有传入<code>ViewModelStoreOwner</code>和<code>ViewModelProvider.Factory</code>对象，说明<code>AppCompatActivity</code>或者其父类中实现了<code>ViewModelStoreOwner</code>接口，找到<code>ComponentActivity</code>发现其不仅实现了<code>ViewModelStoreOwner</code>，还实现了<code>ViewModelProvider.Factory</code>接口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ComponentActivity</span> <span class="keyword">extends</span> <span class="title">androidx</span>.<span class="title">core</span>.<span class="title">app</span>.<span class="title">ComponentActivity</span> <span class="keyword">implements</span></span></span><br><span class="line"><span class="class">        <span class="title">LifecycleOwner</span>,</span></span><br><span class="line"><span class="class">        <span class="title">ViewModelStoreOwner</span>,</span></span><br><span class="line"><span class="class">        <span class="title">HasDefaultViewModelProviderFactory</span>,</span></span><br><span class="line"><span class="class">        <span class="title">SavedStateRegistryOwner</span>,</span></span><br><span class="line"><span class="class">        <span class="title">OnBackPressedDispatcherOwner</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ViewModelStore <span class="title">getViewModelStore</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (getApplication() == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Your activity is not yet attached to the &quot;</span></span><br><span class="line">                    + <span class="string">&quot;Application instance. You can&#x27;t request ViewModel before onCreate call.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (mViewModelStore == <span class="keyword">null</span>) &#123;</span><br><span class="line">            NonConfigurationInstances nc =</span><br><span class="line">                    (NonConfigurationInstances) getLastNonConfigurationInstance();</span><br><span class="line">            <span class="keyword">if</span> (nc != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="comment">// Restore the ViewModelStore from NonConfigurationInstances</span></span><br><span class="line">                mViewModelStore = nc.viewModelStore;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (mViewModelStore == <span class="keyword">null</span>) &#123;</span><br><span class="line">                mViewModelStore = <span class="keyword">new</span> ViewModelStore();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mViewModelStore;</span><br><span class="line">    &#125;</span><br><span class="line">          </span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> ViewModelProvider.<span class="function">Factory <span class="title">getDefaultViewModelProviderFactory</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (getApplication() == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">&quot;Your activity is not yet attached to the &quot;</span></span><br><span class="line">                    + <span class="string">&quot;Application instance. You can&#x27;t request ViewModel before onCreate call.&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (mDefaultFactory == <span class="keyword">null</span>) &#123;</span><br><span class="line">            mDefaultFactory = <span class="keyword">new</span> SavedStateViewModelFactory(</span><br><span class="line">                    getApplication(),</span><br><span class="line">                    <span class="keyword">this</span>,</span><br><span class="line">                    getIntent() != <span class="keyword">null</span> ? getIntent().getExtras() : <span class="keyword">null</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> mDefaultFactory;</span><br><span class="line">    &#125;</span><br><span class="line">          </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="meta">@Nullable</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> Object <span class="title">onRetainNonConfigurationInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Object custom = onRetainCustomNonConfigurationInstance();</span><br><span class="line"></span><br><span class="line">        ViewModelStore viewModelStore = mViewModelStore;</span><br><span class="line">        <span class="keyword">if</span> (viewModelStore == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// No one called getViewModelStore(), so see if there was an existing</span></span><br><span class="line">            <span class="comment">// ViewModelStore from our last NonConfigurationInstance</span></span><br><span class="line">            NonConfigurationInstances nc =</span><br><span class="line">                      (NonConfigurationInstances) getLastNonConfigurationInstance();</span><br><span class="line">            <span class="keyword">if</span> (nc != <span class="keyword">null</span>) &#123;</span><br><span class="line">                viewModelStore = nc.viewModelStore;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (viewModelStore == <span class="keyword">null</span> &amp;&amp; custom == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        NonConfigurationInstances nci = <span class="keyword">new</span> NonConfigurationInstances();</span><br><span class="line">        nci.custom = custom;</span><br><span class="line">        nci.viewModelStore = viewModelStore;</span><br><span class="line">        <span class="keyword">return</span> nci;</span><br><span class="line">    &#125;          </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>ComponentActivity</code>实现<code>getViewModelStore()</code>的时候先尝试从<code>getLastNonConfigurationInstance()</code>获取使用<code>onRetainNonConfigurationInstance()</code>保存的对象，如果没有才会创建。<code>getDefaultViewModelProviderFactory</code>则是直接返回了<code>SavedStateViewModelFactory</code>对象。</p>
+<h4 id="2-3-ViewModelStore"><a href="#2-3-ViewModelStore" class="headerlink" title="2.3 ViewModelStore"></a>2.3 ViewModelStore</h4><p><code>ViewModelStore</code>类的方法非常简单，它使用了<code>HashMap</code>来缓存了ViewModel。并提供<code>clear()</code>来清理ViewModel。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ViewModelStore</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> HashMap&lt;String, ViewModel&gt; mMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    <span class="function"><span class="keyword">final</span> <span class="keyword">void</span> <span class="title">put</span><span class="params">(String key, ViewModel viewModel)</span> </span>&#123;</span><br><span class="line">        ViewModel oldViewModel = mMap.put(key, viewModel);</span><br><span class="line">        <span class="keyword">if</span> (oldViewModel != <span class="keyword">null</span>) &#123;</span><br><span class="line">            oldViewModel.onCleared();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="keyword">final</span> ViewModel <span class="title">get</span><span class="params">(String key)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> mMap.get(key);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function">Set&lt;String&gt; <span class="title">keys</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> HashSet&lt;&gt;(mMap.keySet());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *  清除内部存储并通知ViewModels不再使</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (ViewModel vm : mMap.values()) &#123;</span><br><span class="line">            vm.clear();</span><br><span class="line">        &#125;</span><br><span class="line">        mMap.clear();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-4-ViewModelProvider-Factory"><a href="#2-4-ViewModelProvider-Factory" class="headerlink" title="2.4 ViewModelProvider.Factory"></a>2.4 ViewModelProvider.Factory</h4><p><code>ViewModelProvider.Factory</code>是一个接口，作用是将传入的<code>Class</code>对象生成具体的ViewModel实例。通过<code>ComponentActivity</code>中默认的实现可以看到<code>SavedStateViewModelFactory</code>通过反射来创建ViewModel：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Factory</span> </span>&#123;</span><br><span class="line">    <span class="meta">@NonNull</span></span><br><span class="line">    &lt;T extends ViewModel&gt; <span class="function">T <span class="title">create</span><span class="params">(<span class="meta">@NonNull</span> Class&lt;T&gt; modelClass)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">SavedStateViewModelFactory</span> <span class="keyword">extends</span> <span class="title">ViewModelProvider</span>.<span class="title">KeyedFactory</span></span>&#123;</span><br><span class="line">    ...</span><br><span class="line"> <span class="meta">@NonNull</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> &lt;T extends ViewModel&gt; <span class="function">T <span class="title">create</span><span class="params">(<span class="meta">@NonNull</span> String key, <span class="meta">@NonNull</span> Class&lt;T&gt; modelClass)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">boolean</span> isAndroidViewModel = AndroidViewModel.class.isAssignableFrom(modelClass);</span><br><span class="line">        Constructor&lt;T&gt; constructor;</span><br><span class="line">        <span class="keyword">if</span> (isAndroidViewModel) &#123;</span><br><span class="line">            constructor = findMatchingConstructor(modelClass, ANDROID_VIEWMODEL_SIGNATURE);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            constructor = findMatchingConstructor(modelClass, VIEWMODEL_SIGNATURE);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (constructor == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> mFactory.create(modelClass);</span><br><span class="line">        &#125;</span><br><span class="line">        SavedStateHandleController controller = SavedStateHandleController.create(</span><br><span class="line">                mSavedStateRegistry, mLifecycle, key, mDefaultArgs);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            T viewmodel;</span><br><span class="line">            <span class="keyword">if</span> (isAndroidViewModel) &#123;</span><br><span class="line">                viewmodel = constructor.newInstance(mApplication, controller.getHandle());</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                viewmodel = constructor.newInstance(controller.getHandle());</span><br><span class="line">            &#125;</span><br><span class="line">            viewmodel.setTagIfAbsent(TAG_SAVED_STATE_HANDLE_CONTROLLER, controller);</span><br><span class="line">            <span class="keyword">return</span> viewmodel;</span><br><span class="line">        &#125; </span><br><span class="line">        ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-5-获取ViewModel"><a href="#2-5-获取ViewModel" class="headerlink" title="2.5 获取ViewModel"></a>2.5 获取ViewModel</h4><p>在<code>ViewModelProvider</code>创建完成之后，调用<code>get()</code>就能获取到ViewModel。这里先尝试从<code>ViewModelStore</code>中或取ViewModel，如果不存在则使用<code>ViewModelProvider.Factory</code>创建，并将创建的实例存入到<code>ViewModelStore</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@NonNull</span></span><br><span class="line"><span class="meta">@MainThread</span></span><br><span class="line"><span class="keyword">public</span> &lt;T extends ViewModel&gt; <span class="function">T <span class="title">get</span><span class="params">(<span class="meta">@NonNull</span> Class&lt;T&gt; modelClass)</span> </span>&#123;</span><br><span class="line">    String canonicalName = modelClass.getCanonicalName();</span><br><span class="line">    <span class="keyword">if</span> (canonicalName == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Local and anonymous classes can not be ViewModels&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> get(DEFAULT_KEY + <span class="string">&quot;:&quot;</span> + canonicalName, modelClass);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@NonNull</span></span><br><span class="line"><span class="meta">@MainThread</span></span><br><span class="line"><span class="keyword">public</span> &lt;T extends ViewModel&gt; <span class="function">T <span class="title">get</span><span class="params">(<span class="meta">@NonNull</span> String key, <span class="meta">@NonNull</span> Class&lt;T&gt; modelClass)</span> </span>&#123;</span><br><span class="line">    ViewModel viewModel = mViewModelStore.get(key);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (modelClass.isInstance(viewModel)) &#123;</span><br><span class="line">        <span class="keyword">if</span> (mFactory <span class="keyword">instanceof</span> OnRequeryFactory) &#123;</span><br><span class="line">            ((OnRequeryFactory) mFactory).onRequery(viewModel);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> (T) viewModel;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//noinspection StatementWithEmptyBody</span></span><br><span class="line">        <span class="keyword">if</span> (viewModel != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">// <span class="doctag">TODO:</span> log a warning.</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (mFactory <span class="keyword">instanceof</span> KeyedFactory) &#123;</span><br><span class="line">        viewModel = ((KeyedFactory) (mFactory)).create(key, modelClass);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        viewModel = (mFactory).create(modelClass);</span><br><span class="line">    &#125;</span><br><span class="line">    mViewModelStore.put(key, viewModel);</span><br><span class="line">    <span class="keyword">return</span> (T) viewModel;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-总结"><a href="#3-总结" class="headerlink" title="3. 总结"></a>3. 总结</h3><p>当我们在Activity中去实例化<code>ViewModelProvider</code>时，所依赖的activity在其内部会调用<code>getViewModelStore</code>方法去获取一个<code>ViewModelStore</code>对象。如果没有从ViewModelStore中获取到ViewModel对象则创建一个，并保存起来，然后调用<code>ViewModelProvider.get</code>方法将我们的<code>viewmodel</code>实例通过<code>ViewModelStore</code>进行保存管理，当我们的activity的状态发生改变，如旋转屏幕，此时系统会调用<code>onRetainNonConfigurationInstance</code>方法，在这个方法内会将我们的<code>ViewModelStore</code>进行保存。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2019/11/29/Jetpack%E4%B9%8BViewModel/" title="Jetpack之ViewModel" target="_blank" rel="external">https://blog.xusheng.online/2019/11/29/Jetpack%E4%B9%8BViewModel/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="LeakCanary源码解析"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2019/11/02/Jetpack%E4%B9%8BLiveData/" title="Jetpack之LiveData"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

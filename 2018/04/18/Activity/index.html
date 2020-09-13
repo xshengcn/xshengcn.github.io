@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Activity | X档案</title>
+  <meta name="description" content="Activity类是Android应用的关键组件，而Activity的启动和组合方式是Android平台应用模型的基本组成部分。 这里主要总结了Activity的生命周期、启动模式和IntentFilter的匹配规则。 1. Activity的生命周期1.1 普通情况下的Activity生命周期正常情况下，一个Activity的启动到销毁会经历如下的生命周期：   各个生命周期方法解释如下：  o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Activity">
+<meta property="og:url" content="https://blog.xusheng.online/2018/04/18/Activity/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="Activity类是Android应用的关键组件，而Activity的启动和组合方式是Android平台应用模型的基本组成部分。 这里主要总结了Activity的生命周期、启动模式和IntentFilter的匹配规则。 1. Activity的生命周期1.1 普通情况下的Activity生命周期正常情况下，一个Activity的启动到销毁会经历如下的生命周期：   各个生命周期方法解释如下：  o">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.xusheng.online/2018/04/18/Activity/activity_lifecycle.png">
+<meta property="og:image" content="https://blog.xusheng.online/2018/04/18/Activity/diagram_backstack.png">
+<meta property="og:image" content="https://blog.xusheng.online/2018/04/18/Activity/diagram_backstack_singletask_multiactivity.png">
+<meta property="article:published_time" content="2018-04-18T07:15:17.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.718Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="四大组件">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.xusheng.online/2018/04/18/Activity/activity_lifecycle.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2018/04/18/Activity/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Activity" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Activity
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2018/04/18/Activity/" class="article-date">
+	  <time datetime="2018-04-18T07:15:17.000Z" itemprop="datePublished">2018-04-18</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Android/">Android</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/%E5%9B%9B%E5%A4%A7%E7%BB%84%E4%BB%B6/" rel="tag">四大组件</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2018/04/18/Activity/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>Activity类是Android应用的关键组件，而Activity的启动和组合方式是Android平台应用模型的基本组成部分。</p>
+<p>这里主要总结了Activity的生命周期、启动模式和IntentFilter的匹配规则。</p>
+<h3 id="1-Activity的生命周期"><a href="#1-Activity的生命周期" class="headerlink" title="1. Activity的生命周期"></a>1. Activity的生命周期</h3><h4 id="1-1-普通情况下的Activity生命周期"><a href="#1-1-普通情况下的Activity生命周期" class="headerlink" title="1.1 普通情况下的Activity生命周期"></a>1.1 普通情况下的Activity生命周期</h4><p>正常情况下，一个Activity的启动到销毁会经历如下的生命周期：</p>
+<img src="/2018/04/18/Activity/activity_lifecycle.png" class="" title="activity_lifecycle">
+
+<p>各个生命周期方法解释如下：</p>
+<ol>
+<li><p><code>onCreate</code>：第一次创建Activity时调用。这里是做一些初始化的地方，比如创建视图，数据绑定等。onCreate完成，下一个回调时onStart。</p>
+</li>
+<li><p><code>onRestart</code>：当处于“已停止”状态的Activity即将重启时被调用。此回调后面总是跟着onStart。</p>
+</li>
+<li><p><code>onStart</code>：Activity进入“已启动状态”，并对用户可见</p>
+</li>
+<li><p><code>onResume</code>：表示Activity已经可见，并且出现在前台可以与用户交互。onResume回调后面总是跟着onPause回调。</p>
+</li>
+<li><p><code>onPause</code>：当Activity失去焦点并进入“已暂停”状态时回调。</p>
+</li>
+<li><p><code>onStop</code>：当Activity对用户不可见时回调</p>
+</li>
+<li><p><code>onDestory</code>：Activity即将被销毁时回调。实现onDestory是为了确保在销毁Activity或包含Activity的进程时释放掉资源。</p>
+</li>
+</ol>
+<p>在Activity中的生命周期有三个关键的循环：</p>
+<ul>
+<li><p>完整的生命周期：onCreate ～ onDestory</p>
+</li>
+<li><p>可见生命周期：onStart ～ onStop</p>
+</li>
+<li><p>前台生命周期：onResume ～ onPause</p>
+</li>
+</ul>
+<p>当Activity位于前台，并且用户点击来返回按钮，Activity会经历<code>onPause()</code>、<code>onStop()</code> 和 <code>onDestory()</code>回调。Activity不仅会被销毁，还会从返回堆栈中移除。</p>
+<p>当MainActivity启动SecondActivity时，生命周期如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">MainActivity: onPause()</span><br><span class="line">SecondActivity: onCreate()</span><br><span class="line">SecondActivity: onStart()</span><br><span class="line">SecondActivity: onResume()</span><br><span class="line">MainActivity: onStop()</span><br></pre></td></tr></table></figure>
+
+<p>假如SecondActivity的主题中设置<code>windowIsTranslucent=true</code>时，MainActivity的<code>onStop()</code>并不会被回调，因为它依然时可见的。</p>
+<h4 id="1-2-异常情况下的Activity生命周期"><a href="#1-2-异常情况下的Activity生命周期" class="headerlink" title="1.2 异常情况下的Activity生命周期"></a>1.2 异常情况下的Activity生命周期</h4><h5 id="1-2-1-配置发生了更改"><a href="#1-2-1-配置发生了更改" class="headerlink" title="1.2.1 配置发生了更改"></a>1.2.1 配置发生了更改</h5><p>有很多的事件会触发配置更改，比如横竖屏之间的屏幕方向发生变化、设备语言改变等都可能会导致配置发生更改。</p>
+<p>因为是异常情况下Activity发生的停止,此时会调用 <code>onSaveInstanceState()</code> 来保存Activity的状态，在Android P之前此方法会在onStop之前执行，和onPause没有时间顺序，在Android P之后则会在onStop之后执行。此时的生命周期为:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">onPause() --&gt; onSaveInstanceState() --&gt; onStop() --&gt;  onDestory()</span><br></pre></td></tr></table></figure>
+
+<p>在Activity重建后系统会把Activity销毁时保存的bundle传递给<code>onCreate()</code>和<code>onRestoreInstance()</code>，此时的生命周期为:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">onCreate() --&gt; onstart() --&gt; onRetoreInstanceState() --&gt; onResume()</span><br></pre></td></tr></table></figure>
+
+<h5 id="1-2-2-系统终止了应用进程"><a href="#1-2-2-系统终止了应用进程" class="headerlink" title="1.2.2 系统终止了应用进程"></a>1.2.2 系统终止了应用进程</h5><p>这种情况下Activity的生命周期回调和配置改变时完全一样。</p>
+<p>当系统资源不足时，系统会按照Activity的优先级顺序来杀死目标Activity所在的进程。Activity的优先级从高到低可以分为以下三种：</p>
+<ol>
+<li>前台Activity —— 正在和用户进行交互，处于running状态</li>
+<li>可见但非前台 —— 比如Activity弹出了一个对话框</li>
+<li>后台Activity —— 已经执行了onStop</li>
+</ol>
+<h3 id="2-Activity的启动模式"><a href="#2-Activity的启动模式" class="headerlink" title="2. Activity的启动模式"></a>2. Activity的启动模式</h3><p>在了解Activity的启动模式之前，我们需要先去了解一下任务(Task)和返回堆栈(Back Stack)的相关概念。</p>
+<p>任务是用户在执行某项工作时与之互动的一系列的Activity的集合。这些Activity按照每个Activity的打开顺序排列在一个返回堆栈中。当用户点击主页上的应用程序时，该应用的任务就会转到前台运行。如果该应用没有任务存在，则会创建一个新的任务，并将该应用的“MainActivity”作为堆栈的Root Activity打开。</p>
+<img src="/2018/04/18/Activity/diagram_backstack.png" class="" title="diagram_backstack">
+
+<p>在当前Activity启动另一个Activity时新的 Activity 将被添加到堆栈顶部并获得焦点。上一个 Activity 仍保留在堆栈中，但会停止。当 Activity 停止时，系统会保留其界面的当前状态。当用户按返回按钮时，当前 Activity 会从堆栈顶部移除，上一个 Activity 会恢复）。堆栈中的 Activity 永远不会重新排列，只会被添加和移除，在当前 Activity 启动时被添加堆栈，在用户使用返回按钮离开时从堆栈中移除。因此，返回堆栈按照“后进先出”的对象结构运作。</p>
+<h4 id="3-1-LaunchMode"><a href="#3-1-LaunchMode" class="headerlink" title="3.1 LaunchMode"></a>3.1 LaunchMode</h4><p>Activity有四种启动模式：Standard、SingleTop、SingleTask、SingleInstance</p>
+<ul>
+<li><p><strong>Standard</strong>：Activity默认的启动模式，每次启动一个Activity就会在栈顶创建一个新的实例。缺点是当Activity已经处于栈顶时，再次启动Activity还会创建一个新的实例，不会复用</p>
+</li>
+<li><p><strong>SIngleTop</strong>：当要启动的Activity处于栈顶直接会调用<code>onNewIntent</code>，否则创建新的实例</p>
+</li>
+<li><p><strong>SingleTask</strong>：Activity在整个应用程序中只有一个实例。如果它已经存在于栈中，会调用<code>onNewIntent</code>方法，不会创建新的实例。如果该Activity所在的栈上面有其他的Activity，那么在其之上的Activity会全部出栈</p>
+</li>
+<li><p><strong>SingleInstance</strong>：如果此Activity没有实例，它会创建一个新的任务栈(和启动它的Activity的taskId不同)。如果任务栈中已经有实例会调用<code>onNewIntent</code>，否则创建新的实例</p>
+</li>
+</ul>
+<img src="/2018/04/18/Activity/diagram_backstack_singletask_multiactivity.png" class="" title="diagram_backstack_singletask_multiactivity">
+
+<p>无论 Activity 是在新任务中启动的，还是在和启动它的 Activity 相同的任务中启动，用户按<strong>返回</strong>按钮都会回到上一个 Activity。但是，如果启动了指定 <code>singleTask</code> 启动模式的 Activity，而后台任务中已存在该 Activity 的实例，则系统会将该后台任务整个转到前台运行。此时，返回堆栈包含了转到前台的任务中的所有 Activity，这些 Activity 都位于堆栈的顶部。</p>
+<h4 id="3-2-taskAffinity"><a href="#3-2-taskAffinity" class="headerlink" title="3.2 taskAffinity"></a>3.2 taskAffinity</h4><p>“亲和性”表示 Activity 倾向于属于哪个任务。默认情况下，同一应用中的所有 Activity 彼此具有亲和性。因此，在默认情况下，同一应用中的所有 Activity 都倾向于位于同一任务。</p>
+<p>可以使用 <activity> 元素的 <code>taskAffinity</code> 属性修改任何给定 Activity 的亲和性。</p>
+<p>该属性主要用在这两个方面</p>
+<ul>
+<li><p>当被启动的Activity包含 <code>FLAG_ACTIVITY_NEW_TASK</code> 标记时。</p>
+<p>默认情况下，新Activity将启动到启动它的Activity的任务栈中。但是，如果传递给<code>startActivity()</code>的intent包含<code>FLAG_ACTIVITY_NEW_TASK</code>标志，系统会查找另一个任务栈以容纳新Activity。一般情况下，这是一项新的任务栈。但是，它不一定是。如果已经存在与新Activity具有相同affinity的任务栈，则会将Activity启动到该任务栈中。如果没有，系统会创建新的任务栈。</p>
+</li>
+<li><p>当被启动的Activity的 <code>allowTaskReparenting</code>属性设置为 “<code>true</code>“ 时。 </p>
+<p>在这种情况下，一旦和 Activity 有亲和性的任务进入前台运行，Activity 就可从其启动的任务转移到该任务。</p>
+</li>
+</ul>
+<h4 id="3-3-清除返回堆栈"><a href="#3-3-清除返回堆栈" class="headerlink" title="3.3 清除返回堆栈"></a>3.3 清除返回堆栈</h4><p>如果用户长时间离开Task，系统将清除任务栈中除根Activity之外的所有Activity。当用户再次返回任务栈时，仅恢复根Activity。系统会以这种方式运行，是因为在很长一段时间之后，用户可能已经放弃了之前正在做的事情，并且返回任务栈以开始新的操作。</p>
+<p>有如下的方式可以更改该操作：</p>
+<ul>
+<li><p><code>alwaysRetainTaskState</code><br>在一个任务栈的根Activity上将该属性设置为<code>true</code>，上面描述的行为就不会发生了。任务栈中所有的Activity都会保留，即使过了很长时间。</p>
+</li>
+<li><p><code>clearTaskOnLaunch</code><br>在一个任务栈的根Activity上将该属性设置为<code>true</code>，只要用户重新回到任务栈，任务栈会清除到只有根Activity。换句话说，它与<code>alwaysRetainTaskState</code>相反。即使在离开任务栈片刻之后，用户也始终会返回到初始状态的任务栈。</p>
+</li>
+<li><p><code>finishOnTaskLaunch</code><br>该属性与<code>clearTaskOnLaunch</code>类似，不同点在于该属性作用于单独的Activity上，而不是整个任务栈。它还能使包括根Activity在内的任何Activity消失。当该属性设置为<code>true</code>，Activity仍然是当前任务栈的一部分，如果用户离开然后返回任务栈，则它不再存在了。</p>
+</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2018/04/18/Activity/" title="Activity" target="_blank" rel="external">https://blog.xusheng.online/2018/04/18/Activity/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2018/05/05/Activity%E5%B8%83%E5%B1%80%E7%9A%84%E5%8A%A0%E8%BD%BD%E6%B5%81%E7%A8%8B/" title="Activity布局的加载流程"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2018/03/20/%E6%8E%A2%E7%B4%A2ListView%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/" title="探索ListView缓存机制"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>探索Android启动优化 | X档案</title>
+  <meta name="description" content="对于客户端应用来说，启动速度是用户对于APP的第一体验。用户在使用APP时，交互最多最频繁的也就是APP启动页面。如果启动加载过慢，很可能造成用户对APP的印象过差，更有可能导致用户的卸载行为。 1. APP的启动方式  Android的启动方式分为冷启动、热启动、温启动。一般在做APP启动优化的时候都是基于冷启动的基础上。 1.1 冷启动（cold start）  冷启动是指应用从头开始启动，这">
+<meta property="og:type" content="article">
+<meta property="og:title" content="探索Android启动优化">
+<meta property="og:url" content="https://blog.xusheng.online/2018/12/27/%E6%8E%A2%E7%B4%A2Android%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="对于客户端应用来说，启动速度是用户对于APP的第一体验。用户在使用APP时，交互最多最频繁的也就是APP启动页面。如果启动加载过慢，很可能造成用户对APP的印象过差，更有可能导致用户的卸载行为。 1. APP的启动方式  Android的启动方式分为冷启动、热启动、温启动。一般在做APP启动优化的时候都是基于冷启动的基础上。 1.1 冷启动（cold start）  冷启动是指应用从头开始启动，这">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-12-27T10:59:26.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.732Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="性能优化">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2018/12/27/%E6%8E%A2%E7%B4%A2Android%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-探索Android启动优化" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      探索Android启动优化
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2018/12/27/%E6%8E%A2%E7%B4%A2Android%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/" class="article-date">
+	  <time datetime="2018-12-27T10:59:26.000Z" itemprop="datePublished">2018-12-27</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Android/">Android</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" rel="tag">性能优化</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2018/12/27/%E6%8E%A2%E7%B4%A2Android%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>对于客户端应用来说，启动速度是用户对于APP的第一体验。用户在使用APP时，交互最多最频繁的也就是APP启动页面。如果启动加载过慢，很可能造成用户对APP的印象过差，更有可能导致用户的卸载行为。</p>
+<h3 id="1-APP的启动方式"><a href="#1-APP的启动方式" class="headerlink" title="1. APP的启动方式"></a>1. APP的启动方式</h3><p>  Android的启动方式分为冷启动、热启动、温启动。一般在做APP启动优化的时候都是基于冷启动的基础上。</p>
+<h4 id="1-1-冷启动（cold-start）"><a href="#1-1-冷启动（cold-start）" class="headerlink" title="1.1 冷启动（cold start）"></a>1.1 冷启动（cold start）</h4><p>  冷启动是指应用从头开始启动，这时候的后台并没有该应用的进程（如APP首次启动、进程被杀等）。</p>
+<p>  在冷启动开始的时候，系统会开始创建应用进程：</p>
+<blockquote>
+<ol>
+<li>加载并启动应用</li>
+<li>在应用启动后创建应用的空白窗口</li>
+<li>创建应用进程</li>
+</ol>
+</blockquote>
+<p>  系统创建完应用进程之后，应用进程就负责后续的任务：</p>
+<blockquote>
+<ol>
+<li>创建应用对象（Application create）</li>
+<li>创建主线程</li>
+<li>创建主Activity</li>
+<li>加载布局（inflate views）</li>
+<li>布局屏幕（layout screen）</li>
+<li>绘制首帧（initial draw）</li>
+</ol>
+</blockquote>
+<p>  应用进程完成第一次绘制后，系统进程会将掉当前显示的后台窗口替换为主Activity。这时候用户就可以开始使用应用，至此应用启动完成。</p>
+<p><strong>应用创建</strong></p>
+<p>  当Application启动时，空白的启动窗口将保留在屏幕上，直到系统首次完成绘制应用程序。此时，系统进程会交换应用程序的启动窗口，允许用户开始与应用程序进行交互。这就是为什么程序启动时会先出现一段时间的黑屏(白屏)。</p>
+<p>如果有Application，系统会<code>onCreate()</code>在Application对象上调用该方法。之后，应用程序会生成主线程（也称为UI线程），并通过创建主要活动来执行任务。</p>
+<p>从这一点开始，APP就按照他的应用程序生命周期阶段进行。</p>
+<p><strong>Activity创建</strong></p>
+<p>  应用程序进程创建活动后，活动将执行以下操作：</p>
+<ol>
+<li><p>初始化值。</p>
+</li>
+<li><p>调用构造函数。</p>
+</li>
+<li><p>调用回调方法，例如 Activity.onCreate()，对应Activity的当前生命周期状态。</p>
+<p>通常，该onCreate()方法对加载时间的影响最大，因为它以最高的开销执行工作：加载和填充视图，以及初始化活动运行所需的对象。</p>
+</li>
+</ol>
+<h4 id="1-2-热启动（hot-start）"><a href="#1-2-热启动（hot-start）" class="headerlink" title="1.2 热启动（hot start）"></a>1.2 热启动（hot start）</h4><p>  热启动比冷启动简单的多。系统只需要将Activity从后台切换到到前台，并不会执行应用创建等系列任务。但是在应用完成Activity绘制之前，系统进程也会显示空白窗口。</p>
+<h4 id="1-3-温启动（warm-start）"><a href="#1-3-温启动（warm-start）" class="headerlink" title="1.3 温启动（warm start）"></a>1.3 温启动（warm start）</h4><p>  温启动的场景有很多，它包含了在冷启动期间发生的部分操作。常见的场景有：</p>
+<blockquote>
+<ol>
+<li>用户在退出应用后又重新打开冷应用。此时应用进程可能已经存在，但是应用必须通过调用<code>onCreate()</code>重新创建</li>
+<li>应用被系统杀死，然后用户有重新启动了应用。此时应用进程和Activity都需要重建，但是通过<code>onSaveInstanceState()</code>保存的数据能够帮助恢复数据。</li>
+</ol>
+</blockquote>
+<h3 id="2-启动时间检测"><a href="#2-启动时间检测" class="headerlink" title="2. 启动时间检测"></a>2. 启动时间检测</h3><p>  APP的启动时间是指从应用初始化到显示启动的Activity的这段时间。</p>
+<h4 id="2-1-通过logcat查看启动时间"><a href="#2-1-通过logcat查看启动时间" class="headerlink" title="2.1 通过logcat查看启动时间"></a>2.1 通过logcat查看启动时间</h4><p>在 Android 4.4及更高版本中，logcat 通过 <code>Displayed</code> 日志来输出从启动进程到在屏幕上完成对应 Activity 的绘制所用的时间。日志的显示类似如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ActivityTaskManager: Displayed [package_name]&#x2F;[activity]: +132ms</span><br></pre></td></tr></table></figure>
+
+<p>这里显示的时间包含一下事件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">启动进程 --&gt; 初始化对象 --&gt; 创建并初始化Activity --&gt; 填充布局 --&gt; 绘制首帧</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-2-通过adb命令查看启动时间"><a href="#2-2-通过adb命令查看启动时间" class="headerlink" title="2.2 通过adb命令查看启动时间"></a>2.2 通过adb命令查看启动时间</h4><p>  通过手动执行adb命令来查看启动时间：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb shell am start -S -W [package_name]&#x2F;[activity]</span><br></pre></td></tr></table></figure>
+
+<p>查看输出结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Starting: Intent &#123; act&#x3D;android.intent.action.MAIN cat&#x3D;[android.intent.category.LAUNCHER] cmp&#x3D;[package_name]&#x2F;[activity] &#125;</span><br><span class="line">Status: ok</span><br><span class="line">LaunchState: COLD </span><br><span class="line">Activity: [package_name]&#x2F;[activity]</span><br><span class="line">TotalTime: 704</span><br><span class="line">WaitTime: 706</span><br><span class="line">Complete</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-3-完全显示所用时间（reportFullyDrawn）"><a href="#2-3-完全显示所用时间（reportFullyDrawn）" class="headerlink" title="2.3 完全显示所用时间（reportFullyDrawn）"></a>2.3 完全显示所用时间（reportFullyDrawn）</h4><p>  在Android 4.4之后可以在Activity中手动调用<code>reportFullyDrawn()</code>，通知系统Activity已经完成加载。此时logcat中显示的时间为创建应用对象到手动调用``reportFullyDrawn()`的时间，输入如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ActivityTaskManager: Fully drawn [package_name]&#x2F;[activity]: +1s3ms</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-冷启动优化"><a href="#3-冷启动优化" class="headerlink" title="3. 冷启动优化"></a>3. 冷启动优化</h3><p>  当应用启动出现以下情况时，将被视作启动时间过长。为了更好的用户体验，需要对APP的启动进行优化。</p>
+<blockquote>
+<ul>
+<li>冷启动用了 5 秒或更长时间。</li>
+<li>温启动用了 2 秒或更长时间。</li>
+<li>热启动用了 1.5 秒或更长时间。</li>
+</ul>
+</blockquote>
+<h4 id="3-1-设置启动屏幕背景"><a href="#3-1-设置启动屏幕背景" class="headerlink" title="3.1 设置启动屏幕背景"></a>3.1 设置启动屏幕背景</h4><p>  为了优化系统创建应用进程时创建的空白窗口导致启动时白屏。我们可以使用Activity的<code>WindowBackground</code>主题背景属性，为Activity提供默认的背景页面。</p>
+<p>drawable布局文件：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">layer-list</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span> <span class="attr">android:opacity</span>=<span class="string">&quot;opaque&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">item</span> <span class="attr">android:drawable</span>=<span class="string">&quot;@android:color/white&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">item</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">bitmap</span></span></span><br><span class="line"><span class="tag">      <span class="attr">android:src</span>=<span class="string">&quot;@drawable/logo&quot;</span></span></span><br><span class="line"><span class="tag">      <span class="attr">android:gravity</span>=<span class="string">&quot;center&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">item</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">layer-list</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>  设置启动也的样式：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">style</span> <span class="attr">name</span>=<span class="string">&quot;AppTheme.Launcher&quot;</span>&gt;</span></span><br><span class="line"><span class="xml">    <span class="tag">&lt;<span class="name">item</span> <span class="attr">name</span>=<span class="string">&quot;android:windowBackground&quot;</span>&gt;</span>@drawable/background_launcher<span class="tag">&lt;/<span class="name">item</span>&gt;</span></span></span><br><span class="line"><span class="tag">&lt;/<span class="name">style</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>  然后在清单文件中设置style：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity</span> <span class="attr">...</span></span></span><br><span class="line"><span class="tag"><span class="attr">android:theme</span>=<span class="string">&quot;@style/AppTheme.Launcher&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>  如果需要切回正常的主题，最简单的方法是先调用<code>setTheme(R.style.AppTheme)</code>，然后再调用 <code>super.onCreate()</code> 和 <code>setContentView()</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SplashActivity</span> : <span class="type">AppCompatActivity</span></span>() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        setTheme(R.style.R.style.AppTheme)</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-2-Application-create优化"><a href="#3-2-Application-create优化" class="headerlink" title="3.2 Application create优化"></a>3.2 Application create优化</h4><p>  一般来说，我们引用的很多第三方库都是在Application中初始化。假设Application的初始化操作有友盟，百度，bugly，数据库，IM，图片加载库，网络请求库，广告sdk，地图，推送等。这些会导致Application加载缓慢，需要异步执行。下面是简单的使用线程去初始化第三方sdk：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">thread &#123;</span><br><span class="line">    initUMengPush()</span><br><span class="line">    initBadidu()</span><br><span class="line">    initBlugy()</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-3-Activity-create优化"><a href="#3-3-Activity-create优化" class="headerlink" title="3.3 Activity create优化"></a>3.3 Activity create优化</h4><p>Activity的优化部分主要在于布局的优化，<a href="http://blog.xusheng.online/2019/01/28/Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/">Android布局优化</a></p>
+<h4 id="3-4-使用App-Startup"><a href="#3-4-使用App-Startup" class="headerlink" title="3.4 使用App Startup"></a>3.4 使用App Startup</h4><blockquote>
+<p>The App Startup library provides a straightforward, performant way to initialize components at application startup. Both library developers and app developers can use App Startup to streamline startup sequences and explicitly set the order of initialization.</p>
+</blockquote>
+<p>App Startup库提供了一种直接、高效的方法在应用程序启动时初始化组件。sdk库和app的开发人员都可以使用App Startup来简化并明确设置初始化顺序。</p>
+<p>参考：<a target="_blank" rel="noopener" href="https://developer.android.com/topic/libraries/app-startup">App Startup</a></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2018/12/27/%E6%8E%A2%E7%B4%A2Android%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/" title="探索Android启动优化" target="_blank" rel="external">https://blog.xusheng.online/2018/12/27/%E6%8E%A2%E7%B4%A2Android%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2019/01/09/Android%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%E6%B1%A0/" title="Android中的线程和线程池"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2018/11/21/Android%E6%B6%88%E6%81%AF%E6%9C%BA%E5%88%B6/" title="Android消息机制"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

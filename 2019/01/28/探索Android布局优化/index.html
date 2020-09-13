@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>探索Android布局优化 | X档案</title>
+  <meta name="description" content="布局是 Android 应用中直接影响用户体验的关键部分。不合理的布局会导致应用界面运行缓慢甚至会占用大量的内存。 1. 优化方案1.1 优化布局层次结构首先我们应当删除布局中无用的控件。无用的控件不仅占用了inflate的时间，还增加的程序的内存。 优化视图的层级，例如使用嵌套的 LinearLayout 实例会导致视图层次结构过深。LayoutInflater.inflate()在加载布局的时">
+<meta property="og:type" content="article">
+<meta property="og:title" content="探索Android布局优化">
+<meta property="og:url" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="布局是 Android 应用中直接影响用户体验的关键部分。不合理的布局会导致应用界面运行缓慢甚至会占用大量的内存。 1. 优化方案1.1 优化布局层次结构首先我们应当删除布局中无用的控件。无用的控件不仅占用了inflate的时间，还增加的程序的内存。 优化视图的层级，例如使用嵌套的 LinearLayout 实例会导致视图层次结构过深。LayoutInflater.inflate()在加载布局的时">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/debug_gpu_overdraw.jpeg">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/overdraw_settings.jpeg">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/gpu_rendering.jpeg">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/rendering_settings.jpeg">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032137188.png">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032158944.png">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032211251.png">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032233543.png">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032301341.png">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032316738.png">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032326952.png">
+<meta property="og:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032342418.png">
+<meta property="article:published_time" content="2019-01-28T07:47:04.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.732Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="性能优化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/debug_gpu_overdraw.jpeg">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-探索Android布局优化" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      探索Android布局优化
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/" class="article-date">
+	  <time datetime="2019-01-28T07:47:04.000Z" itemprop="datePublished">2019-01-28</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Android/">Android</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" rel="tag">性能优化</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>布局是 Android 应用中直接影响用户体验的关键部分。不合理的布局会导致应用界面运行缓慢甚至会占用大量的内存。</p>
+<h3 id="1-优化方案"><a href="#1-优化方案" class="headerlink" title="1. 优化方案"></a>1. 优化方案</h3><h4 id="1-1-优化布局层次结构"><a href="#1-1-优化布局层次结构" class="headerlink" title="1.1 优化布局层次结构"></a>1.1 优化布局层次结构</h4><p>首先我们应当删除布局中无用的控件。无用的控件不仅占用了inflate的时间，还增加的程序的内存。</p>
+<p>优化视图的层级，例如使用嵌套的 <code>LinearLayout</code> 实例会导致视图层次结构过深。<code>LayoutInflater.inflate()</code>在加载布局的时候会根据布局的层级递归调用<code>rInflate()</code>，这就导致内存占用增加。</p>
+<p>选择性能较高的<code>ViewGroup</code>，例如布局中既可以使用<code>LinearLayout</code>也可以使用<code>RelativeLayout</code>，那么就采用<code>LinearLayout</code>。这是因为<code>RelativeLayout</code>的功能比<code>LinearLayout</code>更加复杂，它的布局过程需要话费更多的CPU时间。</p>
+<p>合理使用<code>LinearLayout</code>的<code>layout_weight</code> 参数，因为每个它子View都需要测量两次。如果是在<code>RecycleView</code>或者<code>ListView</code>中使用时，需要特别注意。</p>
+<h4 id="1-2-布局复用"><a href="#1-2-布局复用" class="headerlink" title="1.2 布局复用"></a>1.2 布局复用</h4><p>布局的复用主要是通过<code>&lt;include/&gt;</code> 和 <code>&lt;merge/&gt;</code>来实现的。<code>&lt;incloud&gt;</code>虽然不会提升界面的性能(如果没有和<code>&lt;merge&gt;</code>一起使用甚至会增加视图的层级)，但是因为它的可重复使用为我们的开发带来了极大的便利。</p>
+<p><code>&lt;incloud&gt;</code></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">LinearLayout</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">&quot;vertical&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:background</span>=<span class="string">&quot;@color/app_bg&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:gravity</span>=<span class="string">&quot;center_horizontal&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">layout</span>=<span class="string">&quot;@layout/common_progress_bar&quot;</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">TextView</span> <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">              <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">              <span class="attr">android:text</span>=<span class="string">&quot;@string/hello&quot;</span></span></span><br><span class="line"><span class="tag">              <span class="attr">android:padding</span>=<span class="string">&quot;10dp&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">    ...</span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">LinearLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>使用<code>&lt;incloud&gt;</code>时除了可以为布局添加<code>android:id</code>外还可以修改任何 <code>android:layout_</code>属性，不过必须同时替换 <code>android:layout_height</code> 和 <code>android:layout_width</code> 才能让其他布局属性生效。</p>
+</blockquote>
+<h4 id="1-3-按需加载布局"><a href="#1-3-按需加载布局" class="headerlink" title="1.3 按需加载布局"></a>1.3 按需加载布局</h4><p><code>&lt;ViewStub&gt;</code>提供了按需加载的功能，当需要时才会将<code>ViewStub</code>中的布局加载到内存，这样提高了程序的初始化效率。</p>
+<p><code>ViewStub</code>继承至<code>View</code>，它非常轻量级且宽高都为0，因此它本身不参与任何的布局和绘制过程。比如我们需要先从网络请求数据，然后再加载到布局中。这时候我们可以先加载<code>&lt;ProgressBar&gt;</code>，等数据加载到本地和后通过<code>&lt;ViewStub&gt;</code>显示数据内容。如：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">FrameLayout</span> <span class="attr">xmlns:android</span>=<span class="string">&quot;http://schemas.android.com/apk/res/android&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_height</span>=<span class="string">&quot;wrap_content&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:layout_gravity</span>=<span class="string">&quot;center&quot;</span></span></span><br><span class="line"><span class="tag">    <span class="attr">android:orientation</span>=<span class="string">&quot;vertical&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">layout</span>=<span class="string">&quot;@layout/common_loading_view&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/loadingView&quot;</span>/&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">ViewStub</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:inflatedId</span>=<span class="string">&quot;@+id/stubView&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:id</span>=<span class="string">&quot;@+id/contentView&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout</span>=<span class="string">&quot;@layout/content&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_width</span>=<span class="string">&quot;match_parent&quot;</span></span></span><br><span class="line"><span class="tag">        <span class="attr">android:layout_height</span>=<span class="string">&quot;match_parent&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">FrameLayout</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>等到需要使用ViewStub时可以按照如下方式进行：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> view = contentView.inflate()</span><br><span class="line">   view.contentTv.text = remoteData</span><br></pre></td></tr></table></figure>
+
+<p>一旦<code>ViewStub</code>调用<code>inflate(</code>后，<code>ViewStub</code>会被替换掉，此时<code>ViewStub</code>不再是整个布局结构的一部分了。此外，<code>ViewStub</code>还不 支持<code>merge</code>标签。</p>
+<h4 id="1-4-绘制优化"><a href="#1-4-绘制优化" class="headerlink" title="1.4 绘制优化"></a>1.4 绘制优化</h4><p>绘制优化的分为是避免过度绘和<code>View#onDraw()</code>优化。</p>
+<p>采取以下几种策略来减少甚至消除过度绘制：</p>
+<ul>
+<li><p>移除布局中不必要的背景</p>
+</li>
+<li><p>减少视图层级</p>
+</li>
+<li><p>降低透明度</p>
+</li>
+</ul>
+<p>开发者模式中的一些设置可以在我们进行过渡绘制优化时提供很大的帮助，下节工具中会提到。</p>
+<p><code>View#onDraw()</code>方法优化：</p>
+<ul>
+<li><code>onDraw()</code>不要创建新的局部对象，比如我们定义<code>Paint</code>的时候就不能在<code>onDraw()</code>中定义。</li>
+<li>优化<code>onDraw()</code>的执行时间。View的绘制帧率保证60fps，即每帧的绘制时间不超过16ms（16ms = 1000/60）。</li>
+</ul>
+<h3 id="2-布局调优工具"><a href="#2-布局调优工具" class="headerlink" title="2. 布局调优工具"></a>2. 布局调优工具</h3><h4 id="2-1-Layout-Inspector"><a href="#2-1-Layout-Inspector" class="headerlink" title="2.1 Layout Inspector"></a>2.1 Layout Inspector</h4><p>Layout Inspector可以帮我们了解布局的层级结构，用来优化布局的合理性。</p>
+<p>当我们的程序运行在模拟器或者真机上时，可以从<strong>Tools &gt; Android &gt; Layout Inspector</strong>打开Layout Inspector验证应用的布局。</p>
+<p>使用方法参考<a target="_blank" rel="noopener" href="https://developer.android.com/studio/debug/layout-inspector">使用布局检查器和布局验证工具调试布局</a>。</p>
+<h4 id="2-2-Debug-GPU-overdraw"><a href="#2-2-Debug-GPU-overdraw" class="headerlink" title="2.2 Debug GPU overdraw"></a>2.2 Debug GPU overdraw</h4><img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/debug_gpu_overdraw.jpeg" class="" title="debug_gpu_overdraw">
+
+<p>当应用在同一帧中多次绘制同一像素的时候，便会发生过度绘制。</p>
+<p>Android 通过颜色来确定过度绘制的次数：</p>
+<ul>
+<li><strong>默认颜色</strong>：没有过度绘制</li>
+<li><strong>蓝色</strong>：1次</li>
+<li><strong>绿色</strong>：2次</li>
+<li><strong>粉色</strong>：3次</li>
+<li><strong>红色</strong>：4次及以上</li>
+</ul>
+<p>一下是Android默认设置过度绘制查看结果：</p>
+<img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/overdraw_settings.jpeg" class="" title="overdraw_settings">
+
+<blockquote>
+<p>有些时候过度绘制是不可避免的(系统应用都有😭)，我们在优化过度绘制的时候应尽量尝试达到大部分显示默认颜色或仅有 1 次过度绘制（蓝色）的视觉效果。</p>
+</blockquote>
+<h4 id="2-3-Profile-GPU-Rendering"><a href="#2-3-Profile-GPU-Rendering" class="headerlink" title="2.3  Profile GPU Rendering"></a>2.3  Profile GPU Rendering</h4><p>Profile GPU Rendering工具可以显示前一帧所用的相对时间。</p>
+<img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/gpu_rendering.jpeg" class="" title="gpu_rendering"> <img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/rendering_settings.jpeg" class="" title="rendering_settings">
+
+<p>GPU 渲染模式分析工具以图表的形式显示各个阶段及其相对时间。</p>
+<p>GPU 渲染模式分析图表中显示的每个竖条中的每个分段都表示流水线的一个阶段，并在条形图中使用特定的颜色突出显示。下表统计了渲染阶段对应的颜色及发生的原因（参考<a target="_blank" rel="noopener" href="https://developer.android.com/topic/performance/rendering/profile-gpu#psb">使用 GPU 渲染模式分析工具进行分析</a>）：</p>
+<table>
+<thead>
+<tr>
+<th>颜色</th>
+<th>渲染阶段</th>
+<th>说明</th>
+<th>产生原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032137188.png" class="" title="image-20200912032137188"></td>
+<td>其它</td>
+<td>除了渲染系统执行其工作所用的时间外的时间。</td>
+<td>用可能包含应在其他线程上执行的回调、Intent 或其他工作。通过<strong>方法跟</strong>踪或<strong>Systrace</strong> 等工具可以查看主线程上运行的任务。</td>
+</tr>
+<tr>
+<td><img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032158944.png" class="" title="image-20200912032158944"></td>
+<td>输入处理</td>
+<td>表示应用执行输入 Event 回调中的代码所花的时间。</td>
+<td>通常是由于输入处理程序事件回调中的<strong>工作过多或过复杂</strong>导致的。 由于这些回调总是发生在主线程上，因此该问题的解决方法主要是直接优化工作，或者将工作转移到其他线程。</td>
+</tr>
+<tr>
+<td><img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032211251.png" class="" title="image-20200912032211251"></td>
+<td>动画</td>
+<td>显示的是评估在该帧中运行的所有 Animator 所用的时间。</td>
+<td>通常是因动画的某种属性更改而执行的工作。</td>
+</tr>
+<tr>
+<td><img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032233543.png" class="" title="image-20200912032233543"></td>
+<td>测量/布局</td>
+<td>视图层次结构中的 测量 和 布局 回调上所花的时间</td>
+<td>通常是由于<strong>需要布局的视图数量过多</strong>，或者出现了其他问题（例如在层次结构的错误位置发生了 <a target="_blank" rel="noopener" href="https://developer.android.com/topic/performance/optimizing-view-hierarchies#double">Double Taxation</a> 等）。在这两种情况下，要解决性能问题，都需要改善视图层次结构的性能。</td>
+</tr>
+<tr>
+<td><img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032301341.png" class="" title="image-20200912032301341"></td>
+<td>绘制</td>
+<td>用于创建和更新视图显示列表的时间。</td>
+<td>如果竖条的此部分很高，则表明这里可能有许多自定义视图绘制，或 onDraw 函数执行的工作很多。</td>
+</tr>
+<tr>
+<td><img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032316738.png" class="" title="image-20200912032316738"></td>
+<td>同步/上传</td>
+<td>当前帧中将位图对象从 CPU 内存传输到 GPU 内存所需的时间</td>
+<td>帧的所有资源都必须位于 GPU 内存中才能用来绘制帧。这意味着，该指标的值较高可能表示需要加载大量小型资源或少量大型资源</td>
+</tr>
+<tr>
+<td><img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032326952.png" class="" title="image-20200912032326952"></td>
+<td>发出命令</td>
+<td>是发出将显示列表绘制到屏幕上所需的全部命令所需的时间</td>
+<td>此阶段花费的时间直接反映了系统在给定帧中渲染的显示列表的复杂程度和数量</td>
+</tr>
+<tr>
+<td><img src="/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/image-20200912032342418.png" class="" title="image-20200912032342418"></td>
+<td>处理/交换缓冲区</td>
+<td>表示 CPU 等待 GPU 完成其工作的时间</td>
+<td>如果此竖条升高，则表示应用在 GPU 上执行太多工作。</td>
+</tr>
+</tbody></table>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/" title="探索Android布局优化" target="_blank" rel="external">https://blog.xusheng.online/2019/01/28/%E6%8E%A2%E7%B4%A2Android%E5%B8%83%E5%B1%80%E4%BC%98%E5%8C%96/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2019/02/12/RecyclerView%E7%9A%84%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6/" title="RecyclerView的缓存机制"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2019/01/09/Android%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%E6%B1%A0/" title="Android中的线程和线程池"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

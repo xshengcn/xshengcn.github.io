@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>Kotlin委托属性(Delegate) | X档案</title>
+  <meta name="description" content="使用Kotlin某些功能我们很容易编写简洁易读的代码。由于有了数据类(data class)，扩展函数(extensions)和委托属性(delegate)等，与Java类相比，Kotlin类通常更小而且更易阅读。 1. 基础委托只是一个提供属性值并处理其更改的类。这使我们可以将getter-setter逻辑从属性本身移动或委托到单独的类，从而使我们可以重用此逻辑。 假如我们想要一个始终为大写字符">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin委托属性(Delegate)">
+<meta property="og:url" content="https://blog.xusheng.online/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="使用Kotlin某些功能我们很容易编写简洁易读的代码。由于有了数据类(data class)，扩展函数(extensions)和委托属性(delegate)等，与Java类相比，Kotlin类通常更小而且更易阅读。 1. 基础委托只是一个提供属性值并处理其更改的类。这使我们可以将getter-setter逻辑从属性本身移动或委托到单独的类，从而使我们可以重用此逻辑。 假如我们想要一个始终为大写字符">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-05-26T14:51:28.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.727Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="Delegate">
+<meta name="twitter:card" content="summary">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-Kotlin委托属性-Delegate" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Kotlin委托属性(Delegate)
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="article-date">
+	  <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Kotlin/">Kotlin</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Delegate/" rel="tag">Delegate</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <p>使用<strong>Kotlin</strong>某些功能我们很容易编写简洁易读的代码。由于有了数据类(<em>data class</em>)，扩展函数(<em>extensions</em>)和委托属性(<em>delegate</em>)等，与Java类相比，Kotlin类通常更小而且更易阅读。</p>
+<h3 id="1-基础"><a href="#1-基础" class="headerlink" title="1. 基础"></a>1. 基础</h3><p>委托只是一个提供属性值并处理其更改的类。这使我们可以将getter-setter逻辑从属性本身移动或委托到单独的类，从而使我们可以重用此逻辑。</p>
+<p>假如我们想要一个始终为大写字符串的属性<code>param</code>，我们可以在它的属性设置器里进行下面的操作：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UpperCaseDemo</span></span>&#123;</span><br><span class="line">  <span class="keyword">var</span> param:String = <span class="string">&quot;&quot;</span></span><br><span class="line">      <span class="keyword">set</span>(value) &#123;</span><br><span class="line">      field = value.toUpperCase()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果对上面的语法感到困惑，请参考kotlin文档中的<a target="_blank" rel="noopener" href="https://www.kotlincn.net/docs/reference/properties.html">属性与字段</a>。</p>
+<p>假如我们要在其它的类中重用此功能该怎么办？这时候就轮到<strong>Delegate</strong>上场了：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UpperCaseDelegate</span> : <span class="type">ReadWriteProperty</span>&lt;<span class="type">Any?, String</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> upperCaseValue = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;)</span></span>: String &#123;</span><br><span class="line">        <span class="keyword">return</span> upperCaseValue</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(thisRef: <span class="type">Any</span>?, property: <span class="type">KProperty</span>&lt;*&gt;, value: <span class="type">String</span>)</span></span> &#123;</span><br><span class="line">        upperCaseValue = value.toUpperCase()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Delegate</strong>只是具有两个方法的类：用于获取和设置属性的值。为了提供更多信息，它通过<code>KProperty</code>类的实例提供了它正在使用的属性，并通过提供了具有该属性的对象<code>thisRef</code>。下面我们将使用修改<code>UpperCaseDemo</code>：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UpperCaseDemo</span></span>&#123;</span><br><span class="line">  <span class="keyword">var</span> param:String <span class="keyword">by</span> UpperCaseDelegate()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这等效于：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UpperCaseDemo</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> delegate = UpperCaseDelegate()</span><br><span class="line">    <span class="keyword">var</span> param: String</span><br><span class="line">        <span class="keyword">get</span>() &#123;</span><br><span class="line">            <span class="keyword">return</span> delegate.getValue(<span class="keyword">this</span>, <span class="keyword">this</span>::param)</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">set</span>(value) &#123;</span><br><span class="line">            delegate.setValue(<span class="keyword">this</span>, <span class="keyword">this</span>::param, value)</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>::param</code>是一个运算符，它返回该属性的KProperty类的实例。</p>
+<p><strong>Delegate</strong>尽管非常的简单，但是它可能对我们开发人员有很大的帮助。因此，我们来编写一些帮助我们开发的一些Android实例。</p>
+<h3 id="2-使用delegate简化操作"><a href="#2-使用delegate简化操作" class="headerlink" title="2. 使用delegate简化操作"></a>2. 使用delegate简化操作</h3><p>我们经常会将一些参数传递给Fragment，通常类似这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DelegateFragment</span> : <span class="type">Fragment</span></span>() &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> name: String? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> age: <span class="built_in">Int</span>? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">        arguments?.let &#123; args -&gt;</span><br><span class="line">            name = args.getString(ARGS_NAME)</span><br><span class="line">            age = args.getInt(ARGS_AGE)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> ARGS_NAME = <span class="string">&quot;name&quot;</span></span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> ARGS_AGE = <span class="string">&quot;age&quot;</span></span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">newInstance</span><span class="params">(name: <span class="type">String</span>, age: <span class="type">Int</span>)</span></span>: DelegateFragment =</span><br><span class="line">            DelegateFragment().apply &#123;</span><br><span class="line">                arguments = Bundle().apply &#123;</span><br><span class="line">                    putString(ARGS_NAME, name)</span><br><span class="line">                    putInt(ARGS_AGE, age)</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们需要为每个属性编写相同的代码，如果有很多的属性可能会显得非常的混乱。我们下一步将使用属性委托来美化代码。</p>
+<p>Fragment的参数存储在一个<code>Bundle</code>对象中，该对象具有用于放置不同类型的值。我们做一个扩展函数，尝试将任意类型的值放入Bundle中，如果不支持该类型则抛出异常。</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="type">&lt;T : Any&gt;</span> Bundle.<span class="title">put</span><span class="params">(key: <span class="type">String</span>, value: <span class="type">T</span>?)</span></span> &#123;</span><br><span class="line">    <span class="keyword">when</span> (value) &#123;</span><br><span class="line">        <span class="literal">null</span> -&gt; putString(key, <span class="literal">null</span>)</span><br><span class="line">        <span class="keyword">is</span> <span class="built_in">Boolean</span> -&gt; putBoolean(key, value)</span><br><span class="line">        <span class="keyword">is</span> <span class="built_in">Byte</span> -&gt; putByte(key, value)</span><br><span class="line">        <span class="keyword">is</span> <span class="built_in">Char</span> -&gt; putChar(key, value)</span><br><span class="line">        <span class="keyword">is</span> <span class="built_in">Double</span> -&gt; putDouble(key, value)</span><br><span class="line">        <span class="keyword">is</span> <span class="built_in">Float</span> -&gt; putFloat(key, value)</span><br><span class="line">        <span class="keyword">is</span> <span class="built_in">Int</span> -&gt; putInt(key, value)</span><br><span class="line">        <span class="keyword">is</span> <span class="built_in">Long</span> -&gt; putLong(key, value)</span><br><span class="line">        <span class="keyword">is</span> <span class="built_in">Short</span> -&gt; putShort(key, value)</span><br><span class="line">        <span class="keyword">is</span> Bundle -&gt; putBundle(key, value)</span><br><span class="line">        <span class="keyword">is</span> CharSequence -&gt; putCharSequence(key, value)</span><br><span class="line">        <span class="keyword">is</span> Parcelable -&gt; putParcelable(key, value)</span><br><span class="line">        <span class="keyword">is</span> BooleanArray -&gt; putBooleanArray(key, value)</span><br><span class="line">        <span class="keyword">is</span> ByteArray -&gt; putByteArray(key, value)</span><br><span class="line">        <span class="keyword">is</span> CharArray -&gt; putCharArray(key, value)</span><br><span class="line">        <span class="keyword">is</span> DoubleArray -&gt; putDoubleArray(key, value)</span><br><span class="line">        <span class="keyword">is</span> FloatArray -&gt; putFloatArray(key, value)</span><br><span class="line">        <span class="keyword">is</span> IntArray -&gt; putIntArray(key, value)</span><br><span class="line">        <span class="keyword">is</span> LongArray -&gt; putLongArray(key, value)</span><br><span class="line">        <span class="keyword">is</span> ShortArray -&gt; putShortArray(key, value)</span><br><span class="line">        <span class="keyword">is</span> Array&lt;*&gt; -&gt; &#123;</span><br><span class="line">            <span class="keyword">val</span> componentType = value::<span class="keyword">class</span>.java.componentType!!</span><br><span class="line">            <span class="meta">@Suppress(<span class="meta-string">&quot;UNCHECKED_CAST&quot;</span>)</span> <span class="comment">// Checked by reflection.</span></span><br><span class="line">            <span class="keyword">when</span> &#123;</span><br><span class="line">                Parcelable::<span class="keyword">class</span>.java.isAssignableFrom(componentType) -&gt; &#123;</span><br><span class="line">                    putParcelableArray(key, value <span class="keyword">as</span> Array&lt;Parcelable&gt;)</span><br><span class="line">                &#125;</span><br><span class="line">                String::<span class="keyword">class</span>.java.isAssignableFrom(componentType) -&gt; &#123;</span><br><span class="line">                    putStringArray(key, value <span class="keyword">as</span> Array&lt;String&gt;)</span><br><span class="line">                &#125;</span><br><span class="line">                CharSequence::<span class="keyword">class</span>.java.isAssignableFrom(componentType) -&gt; &#123;</span><br><span class="line">                    putCharSequenceArray(key, value <span class="keyword">as</span> Array&lt;CharSequence&gt;)</span><br><span class="line">                &#125;</span><br><span class="line">                Serializable::<span class="keyword">class</span>.java.isAssignableFrom(componentType) -&gt; &#123;</span><br><span class="line">                    putSerializable(key, value)</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">else</span> -&gt; &#123;</span><br><span class="line">                    <span class="keyword">val</span> valueType = componentType.canonicalName</span><br><span class="line">                    <span class="keyword">throw</span> IllegalArgumentException(</span><br><span class="line">                        <span class="string">&quot;Illegal value array type <span class="variable">$valueType</span> for key \&quot;<span class="variable">$key</span>\&quot;&quot;</span></span><br><span class="line">                    )</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">is</span> Serializable -&gt; putSerializable(key, value)</span><br><span class="line">        <span class="keyword">else</span> -&gt; &#123;</span><br><span class="line">            <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= <span class="number">18</span> &amp;&amp; value <span class="keyword">is</span> IBinder) &#123;</span><br><span class="line">                putBinder(key, value)</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= <span class="number">21</span> &amp;&amp; value <span class="keyword">is</span> Size) &#123;</span><br><span class="line">                putSize(key, value)</span><br><span class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (Build.VERSION.SDK_INT &gt;= <span class="number">21</span> &amp;&amp; value <span class="keyword">is</span> SizeF) &#123;</span><br><span class="line">                putSizeF(key, value)</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">val</span> valueType = value.javaClass.canonicalName</span><br><span class="line">                <span class="keyword">throw</span> IllegalArgumentException(<span class="string">&quot;Illegal value type <span class="variable">$valueType</span> for key \&quot;<span class="variable">$key</span>\&quot;&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后创建Delegate：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FragmentArgumentDelegate</span>&lt;<span class="type">T : Any</span>&gt; :<span class="type"></span></span></span><br><span class="line">    ReadWriteProperty&lt;Fragment, T&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Suppress(<span class="meta-string">&quot;UNCHECKED_CAST&quot;</span>)</span></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        thisRef: <span class="type">Fragment</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">        property: <span class="type">KProperty</span>&lt;*&gt;</span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span>: T &#123;</span><br><span class="line">        <span class="keyword">val</span> key = property.name</span><br><span class="line">        <span class="keyword">return</span> thisRef.arguments</span><br><span class="line">            ?.<span class="keyword">get</span>(key) <span class="keyword">as</span>? T</span><br><span class="line">            ?: <span class="keyword">throw</span> IllegalStateException(<span class="string">&quot;Property <span class="subst">$&#123;property.name&#125;</span> could not be read&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        thisRef: <span class="type">Fragment</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">        property: <span class="type">KProperty</span>&lt;*&gt;, value: <span class="type">T</span></span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span> &#123;</span><br><span class="line">        <span class="keyword">val</span> args = thisRef.arguments</span><br><span class="line">            ?: Bundle().also(thisRef::setArguments)</span><br><span class="line">        <span class="keyword">val</span> key = property.name</span><br><span class="line">        args.put(key, value)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 当属性允许为空时</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">FragmentArgumentNullableDelegate</span>&lt;<span class="type">T : Any</span>&gt; :<span class="type"></span></span></span><br><span class="line">    ReadWriteProperty&lt;Fragment, T?&gt; &#123;</span><br><span class="line">      </span><br><span class="line">    <span class="meta">@Suppress(<span class="meta-string">&quot;UNCHECKED_CAST&quot;</span>)</span></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getValue</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        thisRef: <span class="type">Fragment</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">        property: <span class="type">KProperty</span>&lt;*&gt;</span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span>: T? &#123;</span><br><span class="line">        <span class="keyword">val</span> key = property.name</span><br><span class="line">        <span class="keyword">return</span> thisRef.arguments?.<span class="keyword">get</span>(key) <span class="keyword">as</span>? T</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">setValue</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        thisRef: <span class="type">Fragment</span>,</span></span></span><br><span class="line"><span class="function"><span class="params">        property: <span class="type">KProperty</span>&lt;*&gt;, value: <span class="type">T</span>?</span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span> &#123;</span><br><span class="line">        <span class="keyword">val</span> args = thisRef.arguments</span><br><span class="line">            ?: Bundle().also(thisRef::setArguments)</span><br><span class="line">        <span class="keyword">val</span> key = property.name</span><br><span class="line">        value?.let &#123; args.put(key, it) &#125; ?: args.remove(key)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Delegate从Fragment的Arguments中读取属性，当属性的值发生改变时，Delegate将检索Fragment Argument，然后使用<code>Bundle.put</code>扩展函数将新值写入Arguments。</p>
+<p><code>ReadWriteProperty</code>是一个接受两个类型参数的接口。我们将第一个设置为<code>Fragment</code>，使该Delegate仅可用于Fragment内的属性。这使我们可以使用Fragment实例<code>thisRef</code>并管理其参数。<code>ReadWriteProperty</code>的第二个类型参数确定属性可以具有哪种类型的值。</p>
+<p>接下来，我们创建一些扩展函数方便使用：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="type">&lt;T : Any&gt;</span> <span class="title">argument</span><span class="params">()</span></span>: ReadWriteProperty&lt;Fragment, T&gt; =</span><br><span class="line">    FragmentArgumentDelegate()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="type">&lt;T : Any&gt;</span> <span class="title">argumentNullable</span><span class="params">()</span></span>: ReadWriteProperty&lt;Fragment, T?&gt; =</span><br><span class="line">    FragmentArgumentNullableDelegate()</span><br></pre></td></tr></table></figure>
+
+<p>最终我们就可以这样使用Delegate来传递args：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DelegateFragment</span> : <span class="type">Fragment</span></span>() &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> name: String <span class="keyword">by</span> argument()</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> age: <span class="built_in">Int</span>? <span class="keyword">by</span> argumentNullable()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> &#123;</span><br><span class="line">        <span class="function"><span class="keyword">fun</span> <span class="title">newInstance</span><span class="params">(name: <span class="type">String</span>, age: <span class="type">Int</span>)</span></span>: DelegateFragment =</span><br><span class="line">            DelegateFragment().apply &#123;</span><br><span class="line">                <span class="keyword">this</span>.name = name</span><br><span class="line">                <span class="keyword">this</span>.age = age</span><br><span class="line">            &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里的<code>this.name = name</code>并不是直接对对象赋值。可以查看编译后的字节码发现是通过<code>delegate.setvalue()</code>来管理的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">   <span class="meta">@NotNull</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">final</span> DelegateFragment <span class="title">newInstance</span><span class="params">(<span class="meta">@NotNull</span> String name, <span class="keyword">int</span> age)</span> </span>&#123;</span><br><span class="line">      Intrinsics.checkParameterIsNotNull(name, <span class="string">&quot;name&quot;</span>);</span><br><span class="line">      DelegateFragment var3 = <span class="keyword">new</span> DelegateFragment();</span><br><span class="line">      <span class="keyword">boolean</span> var4 = <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">boolean</span> var5 = <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">int</span> var7 = <span class="keyword">false</span>;</span><br><span class="line">      var3.setName(name);</span><br><span class="line">      var3.setAge(age);</span><br><span class="line">      <span class="keyword">return</span> var3;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">final</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   <span class="keyword">return</span> (String)<span class="keyword">this</span>.name$delegate.getValue(<span class="keyword">this</span>, $$delegatedProperties[<span class="number">0</span>]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String var1)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">this</span>.name$delegate.setValue(<span class="keyword">this</span>, $$delegatedProperties[<span class="number">0</span>], var1);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">final</span> Integer <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   <span class="keyword">return</span> (Integer)<span class="keyword">this</span>.age$delegate.getValue(<span class="keyword">this</span>, $$delegatedProperties[<span class="number">1</span>]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(Integer var1)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">this</span>.age$delegate.setValue(<span class="keyword">this</span>, $$delegatedProperties[<span class="number">1</span>], var1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+</blockquote>
+<h3 id="3-结论"><a href="#3-结论" class="headerlink" title="3. 结论"></a>3. 结论</h3><p><strong>Delegate</strong>的功能完全不止上面的实例，有到许多其他方法在应用程序中使用它们。例如自定义View、<code>SharedPreferences</code>等等。这里的目的是为了演示什么是强大的属性委托，以及可以实现什么。如果想要更进一步的了解，可以查阅文档<a target="_blank" rel="noopener" href="https://kotlinlang.org/docs/reference/delegated-properties.html">Delegated Properties</a>。</p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" title="Kotlin委托属性(Delegate)" target="_blank" rel="external">https://blog.xusheng.online/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" title="kotlin Coroutines"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" title="LeakCanary源码解析"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>

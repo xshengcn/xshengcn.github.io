@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>ContentProvider | X档案</title>
+  <meta name="description" content="1. ContentProvider介绍ContentProvider可以帮助应用程序管理自身存储的数据，并提供了一种与其他应用程序共享数据的方式。它们封装数据，并提供数据安全的机制。ContentProvider是代码运行的进程与另一个进程连接数据的标准接口。实现ContentProvider有很多优点。更重要的是，你可以配置一个ContentProvider，以允许其他应用程序能够安全地访问和">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ContentProvider">
+<meta property="og:url" content="https://blog.xusheng.online/2018/08/09/ContentProvider/index.html">
+<meta property="og:site_name" content="X Blog">
+<meta property="og:description" content="1. ContentProvider介绍ContentProvider可以帮助应用程序管理自身存储的数据，并提供了一种与其他应用程序共享数据的方式。它们封装数据，并提供数据安全的机制。ContentProvider是代码运行的进程与另一个进程连接数据的标准接口。实现ContentProvider有很多优点。更重要的是，你可以配置一个ContentProvider，以允许其他应用程序能够安全地访问和">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://blog.xusheng.online/2018/08/09/ContentProvider/content-provider-overview.png">
+<meta property="article:published_time" content="2018-08-09T04:18:24.000Z">
+<meta property="article:modified_time" content="2020-09-13T12:40:43.723Z">
+<meta property="article:author" content="Hsum">
+<meta property="article:tag" content="ContentProvider">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://blog.xusheng.online/2018/08/09/ContentProvider/content-provider-overview.png">
+  <!-- Canonical links -->
+  <link rel="canonical" href="https://blog.xusheng.online/2018/08/09/ContentProvider/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="X Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.0.0"></head>
+
+
+<body class="main-center theme-black" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/xshengcn" target="_blank">
+          <img class="img-circle img-rotate" src="/images/avatar.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">X</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">Android Developer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Shenzhen, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Android/">Android</a><span class="category-list-count">7</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Framework/">Framework</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Jetpack/">Jetpack</a><span class="category-list-count">3</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/Kotlin/">Kotlin</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%97%A5%E5%B8%B8%E8%AE%B0%E5%BD%95/">日常记录</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a><span class="category-list-count">4</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/19/Jetpack-App-Startup/" class="title">Jetpack App Startup</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-19T11:34:05.000Z" itemprop="datePublished">2020-07-19</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                
+              </p>
+              <p class="item-title">
+                <a href="/2020/07/07/kotlin-%E5%87%BD%E6%95%B0%E5%AD%97%E9%9D%A2%E5%80%BC/" class="title">kotlin-函数字面值</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-07-06T16:58:28.000Z" itemprop="datePublished">2020-07-07</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/06/26/kotlin%E5%8D%8F%E7%A8%8B/" class="title">kotlin Coroutines</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-06-26T06:42:36.000Z" itemprop="datePublished">2020-06-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/Kotlin/">Kotlin</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/05/26/Kotlin%E5%A7%94%E6%89%98%E5%B1%9E%E6%80%A7-Delegate/" class="title">Kotlin委托属性(Delegate)</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-05-26T14:51:28.000Z" itemprop="datePublished">2020-05-26</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">源码解析</a>
+              </p>
+              <p class="item-title">
+                <a href="/2020/04/18/LeakCanary%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="title">LeakCanary源码解析</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2020-04-18T10:06:33.000Z" itemprop="datePublished">2020-04-18</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-ContentProvider" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      ContentProvider
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2018/08/09/ContentProvider/" class="article-date">
+	  <time datetime="2018-08-09T04:18:24.000Z" itemprop="datePublished">2018-08-09</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/Framework/">Framework</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/ContentProvider/" rel="tag">ContentProvider</a>
+  </span>
+
+
+        
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2018/08/09/ContentProvider/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h3 id="1-ContentProvider介绍"><a href="#1-ContentProvider介绍" class="headerlink" title="1. ContentProvider介绍"></a>1. ContentProvider介绍</h3><p>ContentProvider可以帮助应用程序管理自身存储的数据，并提供了一种与其他应用程序共享数据的方式。它们封装数据，并提供数据安全的机制。ContentProvider是代码运行的进程与另一个进程连接数据的标准接口。实现ContentProvider有很多优点。更重要的是，你可以配置一个ContentProvider，以允许其他应用程序能够安全地访问和修改应用程序数据，如下图所示。</p>
+<img src="/2018/08/09/ContentProvider/content-provider-overview.png" class="" title="content-provider-overview">
+
+<p>Android系统预置了很多ContentProvider，比如MediaProvider、CalendarProvider、ContactsProvider等。如需跨进程访问这些信息，只要通过调用ContentProvider的query、update、insert和delete方法。</p>
+<p>而创建一个ContentProvider也很简单，只需要实现onCreate、query、update、insert、delete和getType。onCreate可以做一些初始化工作，getType用来返回一个URI请求所对应的mimeType，如果应用不关注这个，可以返回null或者”<em>/</em>“。剩下的四个方法对应增删改查操作。</p>
+<h3 id="2-ContentProvider的使用"><a href="#2-ContentProvider的使用" class="headerlink" title="2. ContentProvider的使用"></a>2. ContentProvider的使用</h3><p><strong>注册ContentProvider</strong></p>
+<p>与 <code>Activity</code> 和 <code>Service</code> 组件类似，需要在AndroidManifest中为ContentProvider注册。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"> <span class="tag">&lt;<span class="name">provider</span> <span class="attr">android:authorities</span>=<span class="string">&quot;list&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">android:directBootAware</span>=<span class="string">[</span>&quot;<span class="attr">true</span>&quot; | &quot;<span class="attr">false</span>&quot;]</span></span><br><span class="line"><span class="tag">          <span class="attr">android:enabled</span>=<span class="string">[</span>&quot;<span class="attr">true</span>&quot; | &quot;<span class="attr">false</span>&quot;]</span></span><br><span class="line"><span class="tag">          <span class="attr">android:exported</span>=<span class="string">[</span>&quot;<span class="attr">true</span>&quot; | &quot;<span class="attr">false</span>&quot;]</span></span><br><span class="line"><span class="tag">          <span class="attr">android:grantUriPermissions</span>=<span class="string">[</span>&quot;<span class="attr">true</span>&quot; | &quot;<span class="attr">false</span>&quot;]</span></span><br><span class="line"><span class="tag">          <span class="attr">android:icon</span>=<span class="string">&quot;drawable resource&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">android:initOrder</span>=<span class="string">&quot;integer&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">android:label</span>=<span class="string">&quot;string resource&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">android:multiprocess</span>=<span class="string">[</span>&quot;<span class="attr">true</span>&quot; | &quot;<span class="attr">false</span>&quot;]</span></span><br><span class="line"><span class="tag">          <span class="attr">android:name</span>=<span class="string">&quot;string&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">android:permission</span>=<span class="string">&quot;string&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">android:process</span>=<span class="string">&quot;string&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">android:readPermission</span>=<span class="string">&quot;string&quot;</span></span></span><br><span class="line"><span class="tag">          <span class="attr">android:syncable</span>=<span class="string">[</span>&quot;<span class="attr">true</span>&quot; | &quot;<span class="attr">false</span>&quot;]</span></span><br><span class="line"><span class="tag">          <span class="attr">android:writePermission</span>=<span class="string">&quot;string&quot;</span> &gt;</span></span><br><span class="line">    . . .</span><br><span class="line"><span class="tag">&lt;/<span class="name">provider</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>参考开发指南的[ <code>&lt;provider&gt; </code>](信息，请参阅开发指南的 <provider> 元素主题。)元素。</p>
+<p><strong>Content URI</strong></p>
+<p>为了帮助对传入的内容 URI 执行的操作，ContentProvider API 加入了便利类 <code>UriMatcher</code>，它会将 URI映射为整型值。这样就可以在 <code>switch</code> 语句中处理这些整型值，为匹配特定模式的一个或多个内容 URI 选择所需操作。</p>
+<p>URI 模式使用以下通配符匹配内容 URI：</p>
+<ul>
+<li><strong><code>\*</code>：</strong>匹配由任意长度的任何有效字符组成的字符串</li>
+<li><strong><code>#</code>：</strong>匹配由任意长度的数字字符组成的字符串</li>
+</ul>
+<p>以下代码段展示了 <code>UriMatcher</code> 中方法的工作方式：</p>
+<figure class="highlight kotlin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">val</span> sUriMatcher = UriMatcher(UriMatcher.NO_MATCH).apply &#123;</span><br><span class="line">    addURI(<span class="string">&quot;com.example.app.provider&quot;</span>, <span class="string">&quot;table3&quot;</span>, <span class="number">1</span>)</span><br><span class="line">    addURI(<span class="string">&quot;com.example.app.provider&quot;</span>, <span class="string">&quot;table3/#&quot;</span>, <span class="number">2</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ExampleProvider</span> : <span class="type">ContentProvider</span></span>() &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">query</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">            uri: <span class="type">Uri</span>?,</span></span></span><br><span class="line"><span class="function"><span class="params">            projection: <span class="type">Array</span>&lt;<span class="type">out</span> <span class="type">String</span>&gt;?,</span></span></span><br><span class="line"><span class="function"><span class="params">            selection: <span class="type">String</span>?,</span></span></span><br><span class="line"><span class="function"><span class="params">            selectionArgs: <span class="type">Array</span>&lt;<span class="type">out</span> <span class="type">String</span>&gt;?,</span></span></span><br><span class="line"><span class="function"><span class="params">            sortOrder: <span class="type">String</span>?</span></span></span><br><span class="line"><span class="function"><span class="params">    )</span></span>: Cursor? &#123;</span><br><span class="line">        <span class="keyword">when</span> (sUriMatcher.match(uri)) &#123;</span><br><span class="line">            <span class="number">1</span> -&gt; &#123;</span><br><span class="line">                <span class="comment">// 匹配到 addURI(&quot;com.example.app.provider&quot;, &quot;table3&quot;, 1)</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="number">2</span> -&gt; &#123;  </span><br><span class="line">                <span class="comment">// 匹配到 addURI(&quot;com.example.app.provider&quot;, &quot;table3/#&quot;, 2)</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> -&gt; &#123; </span><br><span class="line">            </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p><strong>实现自定义ContentProvider</strong></p>
+<p><code>ContentProvider</code> 会处理其他应用发送的请求，从而管理对数据的访问。所有的访问最终都会调用 <code>ContentResolver</code>，后者接着通过调用 <code>ContentProvider</code> 的具体方法来获取访问权限。</p>
+<p><code>ContentProvider</code>提供了6个抽象方法，在继承<code>ContentProvider</code>后我们分别要对它们加以实现：</p>
+<ul>
+<li><p><code>query()</code>：查询数据</p>
+</li>
+<li><p><code>insert()</code>：插入数据</p>
+</li>
+<li><p><code>update()</code>更新数据</p>
+</li>
+<li><p><code>delete()</code>：删除数据</p>
+</li>
+<li><p><code>getType()</code>返回对应的 MIME 类型。如需查看这些标准类型的完整列表，请访问 <a target="_blank" rel="noopener" href="http://www.iana.org/assignments/media-types/index.htm">IANA MIME Media Types</a> 网站。</p>
+</li>
+<li><p><code>onCreate()</code>：初始化ContentProvider。执行在<code>Application.onCreate</code>之前。</p>
+</li>
+</ul>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="https://blog.xusheng.online/2018/08/09/ContentProvider/" title="ContentProvider" target="_blank" rel="external">https://blog.xusheng.online/2018/08/09/ContentProvider/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/xshengcn" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/avatar.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/xshengcn" target="_blank"><span class="text-dark">X</span><small class="ml-1x">Android Developer</small></a></h3>
+        <div>这个人很懒，什么都没留下。</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2018/09/17/%E7%90%86%E8%A7%A3Android-View%E7%9A%84%E4%BA%8B%E4%BB%B6%E5%88%86%E5%8F%91/" title="理解Android View的事件分发"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2018/07/23/Broadcasts/" title="Broadcasts"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/xshengcn" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+
+
+
+
+
+
+</body>
+</html>
