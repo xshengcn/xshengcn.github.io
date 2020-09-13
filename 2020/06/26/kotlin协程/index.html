@@ -26,7 +26,7 @@
 <meta property="og:description" content="Coroutines一般我们都会成协程，单看这个翻译我们很难去理解它的意思。Coroutines其实是由两个单词组合而成的，分别是cooperation和routine。cooperation是指合作，routine指的是例行程序、常规作业，所以我们可以把它翻译为合作的例行程序。 routine在这里指的是程序中的方法，所以说这种将方法协同其它方法来共同作业的方式就叫做Coroutines。 Co">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-06-26T06:42:36.000Z">
-<meta property="article:modified_time" content="2020-09-13T15:40:23.825Z">
+<meta property="article:modified_time" content="2020-09-13T15:45:03.024Z">
 <meta property="article:author" content="Hsum">
 <meta property="article:tag" content="Coroutines">
 <meta name="twitter:card" content="summary">
@@ -374,6 +374,7 @@
 <p>另外可以看到，这个方法 前面加了一个<code>suspend</code> ，表示执行到这个function 时是可以被suspend (暂停)的。</p>
 <p>在Coroutines的代码块中，线程的代码在到达 <code>suspend</code> 函数的时候被掐断，接下来协程会从这个 <code>suspend</code> 函数开始继续往下执行，不过是在<code>withContext</code>指定的线程。在 <code>suspend</code> 函数执行完成之后，会根据传入的Dispatcher将线程切回到原来的线程。</p>
 <p> <code>suspend</code>关键字 起到的并不是切换线程的作用，而是用于IDE的提示。所以fun 前面注记的suspend 必须要在coroutineScope 的launch 、runBlocking 内或者是其他的suspend method 才能够被使用。</p>
+<h3 id="7-总结"><a href="#7-总结" class="headerlink" title="7. 总结"></a>7. 总结</h3><p>这篇主要是记录Kotlin Coroutines的相关介绍。如需深入了解可以查看<a target="_blank" rel="noopener" href="https://developer.android.com/kotlin/coroutines">Android 上的 Kotlin 协程</a>和<a target="_blank" rel="noopener" href="https://kotlinlang.org/docs/reference/coroutines-overview.html#coroutines-for-asynchronous-programming-and-more">Coroutines for asynchronous programming and more</a>等官方文档。</p>
 
       
     </div>
