@@ -298,13 +298,6 @@
   </url>
   
   <url>
-    <loc>https://blog.xusheng.online/tags/Kotlin/</loc>
-    <lastmod>2020-09-14</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://blog.xusheng.online/tags/Animation/</loc>
     <lastmod>2020-09-14</lastmod>
     <changefreq>daily</changefreq>
@@ -404,6 +397,13 @@
   
   <url>
     <loc>https://blog.xusheng.online/tags/View/</loc>
+    <lastmod>2020-09-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://blog.xusheng.online/tags/Function/</loc>
     <lastmod>2020-09-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
